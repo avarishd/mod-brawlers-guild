@@ -21,6 +21,7 @@ Respawn nearby dead players (every few seconds?)
 --- FOR LAST ---
 Arena Randomize/Hazards (+ boss specifics)
 Visuals / Announcer / Crows (cosmetics)
+Seasons
 Challenge Cards + Rare
 */
 

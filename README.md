@@ -1,10 +1,10 @@
 ﻿# ![logo](https://raw.githubusercontent.com/azerothcore/azerothcore.github.io/master/images/logo-github.png) AzerothCore
 
-# mod-brawlers-guild
+# ⚠⚠⚠ WIP ⚠⚠⚠ mod-brawlers-guild ⚠⚠⚠ WIP ⚠⚠⚠
 
 ## Description
 
-Improves upon [Mist of Pandaria's Brawler's Guild](https://wowpedia.fandom.com/wiki/Brawler%27s_Guild)
+Adds [Mist of Pandaria's Brawler's Guild](https://wowpedia.fandom.com/wiki/Brawler%27s_Guild) to AzerothCore.
 
 
 ## How to use ingame (Horde only for now)
