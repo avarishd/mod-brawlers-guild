@@ -27,23 +27,11 @@ If you need to change the module configuration, go to your server configuration 
 
 In `npc_brawlers_guild.cpp` look for "Shop", there you can edit prices, items and required rank for every item.
 
-## Seasons Information
+## Seasons Information (more soon ™)
 
 ### Season 1
-- Pre Tier 7, average ilvl < 200~
 
-### Season 2
-- Tier 7, average ilvl 213~
-
-### Season 3
-- Tier 8, average ilvl 226~
-
-### Season 4
-- Tier 9, average ilvl 245~
-
-### Season 5
-- Tier 10, average ilvl 264~
-
+- Pre Tier 7 - average iLvL 200
 
 ## Credits
 
