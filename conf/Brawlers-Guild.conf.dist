@@ -1,0 +1,141 @@
+[worldserver]
+
+############## Global settings ##############
+
+#
+#    BrawlersGuild.Enabled
+#        Description: Enable or Disable the BrawlersGuild Module.
+#        Default:     BrawlersGuild.Enabled   = 1
+#
+
+BrawlersGuild.Enabled = 1
+
+#
+#    BrawlersGuild.Announce
+#        Description: Announce the BrawlersGuild Module at logon.
+#        Default:     BrawlersGuild.Announce   = 1
+#
+
+BrawlersGuild.Announce = 1
+
+#
+#    BrawlersGuild.CurrentSeason
+#        Description: Current season of BrawlersGuild.
+#        Default:     Default  = 1 (Only 1 for now)
+#
+
+BrawlersGuild.CurrentSeason = 1
+
+############## Coin Settings ##############
+
+#
+#    BrawlersGuild.CoinsStartingQuestReward
+#        Description: Amount of coins that are rewarded upon completing the starting quest.
+#        Default:     Default  = 10
+#
+
+BrawlersGuild.CoinsStartingQuestReward = 10
+
+#
+#    BrawlersGuild.CoinsVictoryReward
+#        Description: Amount of coins that are rewarded upon victory.
+#        Default:     Default  = 2
+#
+
+BrawlersGuild.CoinsVictoryReward = 2
+
+############## Rank settings ##############
+
+#
+#    BrawlersGuild.RankRequired
+#        Description: Required rank points to progress to next rank.
+#        Default:     Default  = 10
+#
+
+BrawlersGuild.RankRequired = 10
+
+#
+#    BrawlersGuild.RankWin
+#        Description: Rank points rewarded upon victory.
+#        Default:     Default  = 1
+#
+
+BrawlersGuild.RankWin = 1
+
+#
+#    BrawlersGuild.RankLose
+#        Description: Rank points lost upon defeat.
+#        Default:     Default  = 2
+#
+
+BrawlersGuild.RankLose = 2
+
+############## Fight settings ##############
+
+#
+#    BrawlersGuild.FightDuration
+#        Description: Maximum allowed duration of every fight
+#        Default:     Default  = 120 (seconds)
+#
+
+BrawlersGuild.FightDuration = 120
+
+#
+#    BrawlersGuild.DampeningStart
+#        Description: Initial dampening (for the player) upon start of a fight.
+#        Default:     Default  = 50 (percentage)
+#
+
+BrawlersGuild.DampeningStart = 50
+
+#
+#    BrawlersGuild.DampeningTimer
+#        Description: How often do we increase dampening.
+#        Default:     Default  = 5 (seconds)
+#
+
+BrawlersGuild.DampeningTimer = 5
+
+#
+#    BrawlersGuild.DampeningPercent
+#        Description: How much do we increase the dampening per DampeningTimer.
+#        Default:     Default  = 1
+#
+
+BrawlersGuild.DampeningPercent = 1
+
+############## Challenge Cards & Rare settings (NYI) ##############
+
+#
+#    BrawlersGuild.RareEnable
+#        Description: Enable or Disable rare spawns
+#        Default:     Default  = 0
+#
+
+BrawlersGuild.RareEnable = 0
+
+#
+#    BrawlersGuild.RarePercent
+#        Description: Percentage to spawn a rare.
+#        Default:     Default  = 0
+#
+
+BrawlersGuild.RarePercent = 0
+
+############## Arena Settings (NYI) ##############
+
+#
+#    BrawlersGuild.ArenaRandomize
+#        Description: Enable or Disable randomizing arena. (Obstacles)
+#        Default:     Default  = 0
+#
+
+BrawlersGuild.ArenaRandomize = 0
+
+#
+#    BrawlersGuild.ArenaHazard
+#        Description: Enable or Disable arena hazards.
+#        Default:     Default  = 0
+#
+
+BrawlersGuild.ArenaHazard = 0
