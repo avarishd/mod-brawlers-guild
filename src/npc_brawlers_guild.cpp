@@ -12,11 +12,11 @@
 #include "Chat.h"
 
 /* TODO
-Queue - std list and call for it in order???
 Check for players that are NOT the selected player
 Defeat() - on creature despawn/player death?
 Dampening - Might need to edit some unused spell in order to make it work
 Respawn nearby dead players (every few seconds?)
+Leave queue option
 
 --- FOR LAST ---
 Arena Randomize/Hazards (+ boss specifics)
@@ -71,7 +71,7 @@ enum BrawlersGuild
 
     ACTION_FIND_PLAYER = 1,
 
-    EVENT_FIND_PLAYER = 2,
+    EVENT_FIND_PLAYER = 2, // Move queue
     EVENT_START       = 3,
     EVENT_NOT_FOUND   = 4,
 
@@ -89,7 +89,11 @@ const uint32 Rank3[1] = {60007};
 
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
-static std::list<Player*> queueList;
+// Player queue list
+std::list<Player*> queueList;
+
+// The current player that is about to/already fighting in the arena.
+Player* CurrentPlayer = nullptr;
 
 class npc_brawlers_guild : public CreatureScript
 {
@@ -121,13 +125,20 @@ public:
         {
             if (player->ToPlayer())
             {
-                player->GetSession()->SendNotification("You have been added to the queue.");
-                creature->AddAura(9454, player); // GM Sleep
-                player->NearTeleportTo(2199, -4745, 55.13, 4.1);
-                if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
-                    t->AI()->DoAction(ACTION_FIND_PLAYER);
-                //queueList.push_back(player);
-                //queueList.Remove(player)
+                if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
+                {
+                    player->GetSession()->SendNotification("You have been added to the queue.");
+                    queueList.push_back(player);
+                    LOG_ERROR("error", "Added {} to queue", player->GetGUID().GetCounter());
+
+                    if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
+                        t->AI()->DoAction(ACTION_FIND_PLAYER);
+                }
+                else
+                {
+                    player->GetSession()->SendNotification("You are already in the queue.");
+                    LOG_ERROR("error", "Player {} is already in the queue", player->GetGUID().GetCounter());
+                }
             }
         }
 
@@ -228,22 +239,28 @@ public:
     {
         npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me) {}
 
+    // Timed out
     void SummonedCreatureDespawn(Creature* /*summon*/)
     {
-        if (Player* player = GetPlayer())
+        if (CurrentPlayer)
         {
-            player->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
-            me->Whisper("You ran out of time!", LANG_UNIVERSAL, player, true);
-            PlayerGUID.Clear();
+            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+            me->Whisper("You ran out of time!", LANG_UNIVERSAL, CurrentPlayer, true);
+            queueList.remove(CurrentPlayer);
+            CurrentPlayer = nullptr;
+            events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
         }
     }
 
+    // Victory by kill
     void SummonedCreatureDies(Creature* summon, Unit* /*killer*/)
     {
-        if (Player* player = GetPlayer())
+        if (CurrentPlayer)
         {
-            Victory(player);
-            PlayerGUID.Clear();
+            Victory(CurrentPlayer);
+            queueList.remove(CurrentPlayer);
+            CurrentPlayer = nullptr;
+            events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
         }
 
         if (summon)
@@ -319,34 +336,66 @@ public:
                 {
                     case EVENT_FIND_PLAYER:
                     {
-                        if (Player* player = me->SelectNearestPlayer(5.0f))
+                        if (!CurrentPlayer)
                         {
-                            if (player->HasAura(9454))
+                            std::stringstream currentQueue;
+
+                            for (Player* player : queueList)
                             {
-                                PlayerGUID = player->GetGUID();
+                                if (player)
+                                {
+                                    currentQueue << player->GetGUID().GetCounter() << ", ";
+                                }
+                            }
+
+                            for (Player* player : queueList)
+                            {
+                                if (player)
+                                {
+                                    CurrentPlayer = player;
+                                    LOG_ERROR("error", "Current player {}", player->GetGUID().GetCounter());
+                                    LOG_ERROR("error", "Queue GUID List: {}", currentQueue.str());
+                                    break;
+                                }
+                                else
+                                {
+                                    // Remove player from queue list
+                                    queueList.remove(CurrentPlayer);
+                                    CurrentPlayer = nullptr;
+                                    events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+                                }
+                            }
+
+                            if (CurrentPlayer)
+                            {
+                                CurrentPlayer->NearTeleportTo(2199, -4745, 55.13, 4.1);
+                                events.ScheduleEvent(EVENT_START, 2s);
+                                events.ScheduleEvent(EVENT_NOT_FOUND, 5s);
                             }
                         }
-                        events.ScheduleEvent(EVENT_START, 2s);
-                        events.ScheduleEvent(EVENT_NOT_FOUND, 5s);
                         break;
                     }
+
+                    // Something went wrong
                     case EVENT_NOT_FOUND:
                     {
-                        if (Player* player = GetPlayer())
+                        if (CurrentPlayer)
                         {
-                            player->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
-                            PlayerGUID.Clear();
+                            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+                            queueList.remove(CurrentPlayer);
+                            CurrentPlayer = nullptr;
                         }
 
+                        events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
                         AddRatGossip(true);
                         summons.DespawnAll();
                         break;
                     }
                     case EVENT_START:
                     {
-                        if (Player* player = GetPlayer())
+                        if (CurrentPlayer)
                         {
-                            QueryResult result = CharacterDatabase.Query("SELECT `Rank` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
+                            QueryResult result = CharacterDatabase.Query("SELECT `Rank` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", CurrentPlayer->GetGUID().GetCounter());
 
                             if (result)
                             {
@@ -375,14 +424,15 @@ public:
                                 }
 
                                 AddRatGossip(false);
-                                player->RemoveAura(9454);
-                                me->Whisper("Begin!", LANG_UNIVERSAL, player, true);
+                                me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
                             }
                             else
                             {
-                                // Something got messed up
+                                // Something went wrong
+                                events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
                                 AddRatGossip(true);
                             }
+
                             events.CancelEvent(EVENT_NOT_FOUND);
                         }
                         break;
@@ -395,8 +445,6 @@ public:
     private:
         EventMap events;
         SummonList summons;
-        ObjectGuid PlayerGUID;
-        Player* GetPlayer() {return ObjectAccessor::GetPlayer(*me, PlayerGUID);}
     };
 
     CreatureAI* GetAI(Creature* creature) const override
