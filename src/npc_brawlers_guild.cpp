@@ -125,15 +125,28 @@ public:
         {
             if (player->ToPlayer())
             {
+                // Check if player is not in the queue.
                 if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
                 {
+                    // Announce queue size (if any)
+                    if (!queueList.empty())
+                    {
+                        std::stringstream size;
+                        size << "Current queue: " << queueList.size();
+                        creature->Say(size.str(), LANG_UNIVERSAL);
+                    }
+
                     player->GetSession()->SendNotification("You have been added to the queue.");
                     queueList.push_back(player);
                     LOG_ERROR("error", "Added {} to queue", player->GetGUID().GetCounter());
 
                     if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
+                    {
                         t->AI()->DoAction(ACTION_FIND_PLAYER);
+                    }
                 }
+
+                // Player is already in the queue.
                 else
                 {
                     player->GetSession()->SendNotification("You are already in the queue.");
@@ -508,7 +521,7 @@ enum Shop
     SHOP_ITEM_DREAD_RING     = 50255,
     SHOP_ITEM_EOH            = 40752,
     BUY_RANK_4_RING          = 27,
-    BUY_RANK_4_EOH          = 28,
+    BUY_RANK_4_EOH           = 28,
 /*
     // Rank 5
     SHOP_ITEM_GIGANTIQUE_BAG = 38082,
