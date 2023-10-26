@@ -153,6 +153,8 @@ public:
                     LOG_ERROR("error", "Player {} is already in the queue", player->GetGUID().GetCounter());
                 }
             }
+
+            CloseGossipMenuFor(player);
         }
 
         if (action == MY_RANK)
