@@ -78,6 +78,8 @@ enum BrawlersGuild
     TOP_15          = 12,
     GOODBYE         = 13,
     DEL_FROM_QUEUE  = 14,
+
+    SPELL_QUEUE_COOLDOWN = 200001,
 };
 
 // ### Season 1 ###
@@ -108,17 +110,31 @@ public:
 
         if (player->GetQuestStatus(QUEST_BRAWLERS_GUILD) == QUEST_STATUS_REWARDED)
         {
-            // Check if player is not in the queue.
-            if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
+            if (BrawlersGuild_Enabled)
             {
-                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+                if (!player->HasAura(SPELL_QUEUE_COOLDOWN))
+                {
+                    // Check if player is not in the queue.
+                    if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
+                    {
+                        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+                    }
+                    // Already in queue,
+                    else
+                    {
+                        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Remove me from the queue!", GOSSIP_SENDER_MAIN, DEL_FROM_QUEUE);
+                    }
+                }
+                else
+                {
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "You will be allowed to queue in 1 minute.", GOSSIP_SENDER_MAIN, 0);
+                }
             }
-            // Already in queue,
             else
             {
-                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Remove me from the queue!", GOSSIP_SENDER_MAIN, DEL_FROM_QUEUE);
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Queue is currently disabled.", GOSSIP_SENDER_MAIN, 0);
             }
-            
+
             // Queue size
             AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-----------------", GOSSIP_SENDER_MAIN, 0);
             std::stringstream size;
@@ -143,8 +159,8 @@ public:
         {
             if (player->ToPlayer())
             {
-                player->GetSession()->SendNotification("You have been added to the queue.");
                 queueList.push_back(player);
+                player->GetSession()->SendNotification("You have been added to the queue.");
 
                 if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
                 {
@@ -161,6 +177,7 @@ public:
             {
                 queueList.remove(player);
                 player->GetSession()->SendNotification("You have been removed from the queue.");
+                player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
             }
 
         CloseGossipMenuFor(player);
