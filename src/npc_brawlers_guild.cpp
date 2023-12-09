@@ -12,11 +12,9 @@
 #include "Chat.h"
 
 /* TODO
-Check for players that are NOT the selected player
+Check for players that are NOT the selected player -> check if in LOS and if not the current player = then kick
 Defeat() - on creature despawn/player death?
-Dampening - Might need to edit some unused spell in order to make it work
 Respawn nearby dead players (every few seconds?)
-Leave queue option
 
 --- FOR LAST ---
 Arena Randomize/Hazards (+ boss specifics)
@@ -79,12 +77,15 @@ enum BrawlersGuild
     ADD_TO_QUEUE    = 11,
     TOP_15          = 12,
     GOODBYE         = 13,
+    DEL_FROM_QUEUE  = 14,
 };
 
 // ### Season 1 ###
 // Bob, Smiley, Dungeon Master Billey, Zerg
 const uint32 Rank1[4] = {60002, 60003, 60004, 60005};
+
 const uint32 Rank2[1] = {60006};
+
 const uint32 Rank3[1] = {60007};
 
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
@@ -107,8 +108,25 @@ public:
 
         if (player->GetQuestStatus(QUEST_BRAWLERS_GUILD) == QUEST_STATUS_REWARDED)
         {
+            // Check if player is not in the queue.
+            if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
+            {
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+            }
+            // Already in queue,
+            else
+            {
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Remove me from the queue!", GOSSIP_SENDER_MAIN, DEL_FROM_QUEUE);
+            }
+            
+            // Queue size
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-----------------", GOSSIP_SENDER_MAIN, 0);
+            std::stringstream size;
+            size << "Current queue size: " << queueList.size();
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, size.str(), GOSSIP_SENDER_MAIN, 0);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-----------------", GOSSIP_SENDER_MAIN, 0);
+
             AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "What is my current rank progress?", GOSSIP_SENDER_MAIN, MY_RANK);
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
             AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Show me top 15!", GOSSIP_SENDER_MAIN, TOP_15);
             AddGossipItemFor(player, GOSSIP_ICON_CHAT, "I am at the wrong place.", GOSSIP_SENDER_MAIN, GOODBYE);
         }
@@ -121,40 +139,31 @@ public:
     {
         ClearGossipMenuFor(player);
 
-        if (action == ADD_TO_QUEUE)// && !ArenaActive)
+        if (action == ADD_TO_QUEUE)
         {
             if (player->ToPlayer())
             {
-                // Check if player is not in the queue.
-                if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
+                player->GetSession()->SendNotification("You have been added to the queue.");
+                queueList.push_back(player);
+
+                if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
                 {
-                    // Announce queue size (if any)
-                    if (!queueList.empty())
-                    {
-                        std::stringstream size;
-                        size << "Current queue: " << queueList.size();
-                        creature->Say(size.str(), LANG_UNIVERSAL);
-                    }
-
-                    player->GetSession()->SendNotification("You have been added to the queue.");
-                    queueList.push_back(player);
-                    LOG_ERROR("error", "Added {} to queue", player->GetGUID().GetCounter());
-
-                    if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
-                    {
-                        t->AI()->DoAction(ACTION_FIND_PLAYER);
-                    }
-                }
-
-                // Player is already in the queue.
-                else
-                {
-                    player->GetSession()->SendNotification("You are already in the queue.");
-                    LOG_ERROR("error", "Player {} is already in the queue", player->GetGUID().GetCounter());
+                    t->AI()->DoAction(ACTION_FIND_PLAYER);
                 }
             }
 
-            CloseGossipMenuFor(player);
+        CloseGossipMenuFor(player);
+        }
+
+        if (action == DEL_FROM_QUEUE)
+        {
+            if (player->ToPlayer())
+            {
+                queueList.remove(player);
+                player->GetSession()->SendNotification("You have been removed from the queue.");
+            }
+
+        CloseGossipMenuFor(player);
         }
 
         if (action == MY_RANK)
@@ -353,23 +362,11 @@ public:
                     {
                         if (!CurrentPlayer)
                         {
-                            std::stringstream currentQueue;
-
-                            for (Player* player : queueList)
-                            {
-                                if (player)
-                                {
-                                    currentQueue << player->GetGUID().GetCounter() << ", ";
-                                }
-                            }
-
                             for (Player* player : queueList)
                             {
                                 if (player)
                                 {
                                     CurrentPlayer = player;
-                                    LOG_ERROR("error", "Current player {}", player->GetGUID().GetCounter());
-                                    LOG_ERROR("error", "Queue GUID List: {}", currentQueue.str());
                                     break;
                                 }
                                 else
