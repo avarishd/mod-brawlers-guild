@@ -12,16 +12,12 @@
 #include "Chat.h"
 
 /* TODO
-Defeat() -  player death // can use aura to do something once removed (died)
-
---- FOR LAST ---
 Arena Randomize/Hazards (+ boss specifics?)
 Visuals / Announcer / Crows (cosmetics)
 Rares (at max rank and beyond)
 Seasons
 */
 
-// Global settings
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
 uint8 BrawlersGuild_CurrentSeason;
@@ -36,22 +32,6 @@ public:
         BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", 1);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetOption<bool>("BrawlersGuild.Announce", 1);
         BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
-    }
-};
-
-class BrawlersGuild_Announce : public PlayerScript
-{
-public:
-
-    BrawlersGuild_Announce() : PlayerScript("BrawlersGuild_Announce") {}
-
-    void OnLogin(Player* player)
-    {
-        // Announce Module
-        if (BrawlersGuild_Enabled && BrawlersGuild_AnnounceModule)
-        {
-            ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cffe67b09Brawlers Guild|r module.");
-        }
     }
 };
 
@@ -70,6 +50,7 @@ enum BrawlersGuild
     EVENT_FIND_PLAYER = 2, // Move queue
     EVENT_START       = 3,
     EVENT_NOT_FOUND   = 4,
+    ACTION_DEFEAT     = 7,
 
     // Other players
     ACTION_FIND_OTHER_PLAYERS = 5,
@@ -105,6 +86,48 @@ const uint32 Rank1[4] = {60002, 60003, 60004, 60005};
 const uint32 Rank2[4] = {60006, 60007, 60008 /*60010*/, 60009};
 
 const uint32 Rank3[4] = {60011,60012,60013,60014};
+
+class BrawlersGuild_Announce : public PlayerScript
+{
+public:
+
+    BrawlersGuild_Announce() : PlayerScript("BrawlersGuild_Announce") {}
+
+    // Announce Module
+    void OnLogin(Player* player) override
+    {
+        if (BrawlersGuild_Enabled && BrawlersGuild_AnnounceModule)
+        {
+            ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cffe67b09Brawlers Guild|r module.");
+        }
+    }
+
+    // On Player Death, checks only for the CurrentPlayer.
+    void OnPlayerJustDied(Player* player) override
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer && player == CurrentPlayer)
+        {
+            uint32 mapId  = player->GetMapId();
+            uint32 areaId = player->GetAreaId();
+
+            // Check only for Kalimdor, Orgrimmar /// @TOOD: Find a way to get subzone name (e.g "Ring of Valor")
+            if (mapId == 1 && areaId == 1637)
+            {
+                float z = player->GetPositionZ();
+
+                // Center of the arena and ground elevation + jump Z.
+                if (player->IsInRange3d(2178.2, -4764.79, 55.13, 0, 45) && (z >= 55 && z <= 57))
+                {
+                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 45))
+                    {
+                        t->AI()->DoAction(ACTION_DEFEAT);
+                    }
+                    LOG_ERROR("error", "Player [{}] just died.", player->GetName().c_str());
+                }
+            }
+        }
+    }
+};
 
 class npc_brawlers_guild : public CreatureScript
 {
@@ -288,16 +311,18 @@ public:
     {
         npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me) {}
 
-    // Timed out
-    void SummonedCreatureDespawn(Creature* /*summon*/)
+
+    void JustSummoned(Creature* cr) override
     {
-        if (CurrentPlayer)
+        summons.Summon(cr);
+    }
+
+    // Defeat by timing out.
+    void SummonedCreatureDespawn(Creature* /*summon*/) override
+    {
+        if (CurrentPlayer && CurrentPlayer->IsAlive()) // Prevent double callback
         {
-            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
-            me->Whisper("You ran out of time!", LANG_UNIVERSAL, CurrentPlayer, true);
-            queueList.remove(CurrentPlayer);
-            CurrentPlayer = nullptr;
-            events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+            Defeat(true);
         }
     }
 
@@ -353,11 +378,33 @@ public:
             }
     }
 
+    /// @TODO: Deduct points/rank  // sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2)
+    // true = timed out, false = player died
+    void Defeat(bool type)
+    {
+        if (CurrentPlayer)
+        {
+            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+            std::string msg = type ? "You ran out of time!" : "You have failed.";
+            me->Whisper(msg, LANG_UNIVERSAL, CurrentPlayer, true);
+
+            queueList.remove(CurrentPlayer);
+            summons.DespawnAll();
+            CurrentPlayer = nullptr;
+            events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+        }
+    }
+
     void DoAction(int32 action)
     {
         if (action == ACTION_FIND_PLAYER)
         {
             events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+        }
+
+        if (action == ACTION_DEFEAT)
+        {
+            Defeat(false);
         }
     }
 
