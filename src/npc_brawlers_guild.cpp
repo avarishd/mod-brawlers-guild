@@ -12,13 +12,13 @@
 #include "Chat.h"
 
 /* TODO
-Defeat() -  player death
+Defeat() -  player death // can use aura to do something once removed (died)
 
 --- FOR LAST ---
-Arena Randomize/Hazards (+ boss specifics)
+Arena Randomize/Hazards (+ boss specifics?)
 Visuals / Announcer / Crows (cosmetics)
+Rares (at max rank and beyond)
 Seasons
-Challenge Cards + Rare
 */
 
 // Global settings
@@ -86,21 +86,25 @@ enum BrawlersGuild
     SPELL_CHEAP_SHOT     = 30986,
 };
 
-// ### Season 1 ###
-// Bob, Smiley, Dungeon Master Billey, Zerg
-const uint32 Rank1[4] = {60002, 60003, 60004, 60005};
-
-const uint32 Rank2[1] = {60006};
-
-const uint32 Rank3[1] = {60007};
-
-const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
-
 // Player queue list
 std::list<Player*> queueList;
 
 // The current player that is about to/already fighting in the arena.
 Player* CurrentPlayer = nullptr;
+
+// Arena mobs spawn position.
+const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
+
+/// @TODO: Find a better way for that.
+// ### Season 1 ### 
+
+// Bob, Smiley, Dungeon Master Billey, Zerg
+const uint32 Rank1[4] = {60002, 60003, 60004, 60005};
+
+// Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
+const uint32 Rank2[4] = {60006, 60007, 60008 /*60010*/, 60009};
+
+const uint32 Rank3[4] = {60011,60012,60013,60014};
 
 class npc_brawlers_guild : public CreatureScript
 {
@@ -446,12 +450,12 @@ public:
                                     }
                                     case 2:
                                     {
-                                        me->SummonCreature(Rank2[0], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
+                                        me->SummonCreature(Rank2[urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
                                         break;
                                     }
                                     case 3:
                                     {
-                                        me->SummonCreature(Rank3[0], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
+                                        me->SummonCreature(Rank3[urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
                                         break;
                                     }
                                 }
