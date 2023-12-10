@@ -12,9 +12,7 @@
 #include "Chat.h"
 
 /* TODO
-Check for players that are NOT the selected player -> check if in LOS and if not the current player = then kick
-Defeat() - on creature despawn/player death?
-Respawn nearby dead players (every few seconds?)
+Defeat() -  player death
 
 --- FOR LAST ---
 Arena Randomize/Hazards (+ boss specifics)
@@ -67,12 +65,17 @@ enum BrawlersGuild
     NPC_BRAWLERS_GUILD      = 60000,
     NPC_TARGET_SELECTOR     = 60001,
 
+    // Current Player
     ACTION_FIND_PLAYER = 1,
-
     EVENT_FIND_PLAYER = 2, // Move queue
     EVENT_START       = 3,
     EVENT_NOT_FOUND   = 4,
 
+    // Other players
+    ACTION_FIND_OTHER_PLAYERS = 5,
+    EVENT_FIND_OTHER_PLAYERS  = 6,
+
+    // Helix
     MY_RANK         = 10,
     ADD_TO_QUEUE    = 11,
     TOP_15          = 12,
@@ -80,6 +83,7 @@ enum BrawlersGuild
     DEL_FROM_QUEUE  = 14,
 
     SPELL_QUEUE_COOLDOWN = 200001,
+    SPELL_CHEAP_SHOT     = 30986,
 };
 
 // ### Season 1 ###
@@ -482,6 +486,50 @@ public:
     }
 };
 
+// Checks for players (and pets) that are not supposed to be in the arena.
+class npc_other_players_detector : public CreatureScript
+{
+public:
+    npc_other_players_detector() : CreatureScript("npc_other_players_detector") { }
+
+    struct npc_other_players_detectorAI : public ScriptedAI
+    {
+        npc_other_players_detectorAI(Creature* creature) : ScriptedAI(creature) {}
+
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (who && (who->IsPet() || who->IsPlayer()))
+        {
+            if (who->IsWithinDist(me, 45))
+            {
+                if (me->GetMap()->isInLineOfSight(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), who->GetPositionX(), who->GetPositionY(), who->GetPositionZ(), 2, LINEOFSIGHT_CHECK_VMAP , VMAP::ModelIgnoreFlags::Nothing))
+                {
+                    if (who->ToPlayer() && who->ToPlayer() != CurrentPlayer)
+                    {
+                        me->AddAura(SPELL_CHEAP_SHOT, who);
+                        who->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+                    }
+                    if (who->IsPet())
+                    {
+                        if (who->ToCreature()->GetOwner() != CurrentPlayer)
+                        {
+                            who->ToCreature()->DespawnOrUnsummon();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void UpdateAI(uint32 /*diff*/) override {}
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_other_players_detectorAI (creature);
+    }
+};
+
 class npc_anti_stuck : public CreatureScript
 {
 public:
@@ -746,6 +794,7 @@ void AddBrawlersGuildScripts()
     new BrawlersGuild_Announce();
     new npc_brawlers_guild();
     new npc_player_detector();
+    new npc_other_players_detector();
     new npc_anti_stuck();
     new npc_brawlers_vendor();
 }
