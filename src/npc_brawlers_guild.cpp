@@ -118,11 +118,12 @@ public:
                 // Center of the arena and ground elevation + jump Z.
                 if (player->IsInRange3d(2178.2, -4764.79, 55.13, 0, 45) && (z >= 55 && z <= 57))
                 {
+                    // Defeat by dying.
                     if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 45))
                     {
                         t->AI()->DoAction(ACTION_DEFEAT);
                     }
-                    LOG_ERROR("error", "Player [{}] just died.", player->GetName().c_str());
+                    //LOG_ERROR("error", "Player [{}] just died.", player->GetName().c_str());
                 }
             }
         }
@@ -148,7 +149,21 @@ public:
                     // Check if player is not in the queue.
                     if ((std::find(queueList.begin(), queueList.end(), player) == queueList.end()))
                     {
-                        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+                        // Do not allow to queue if at rank 0. (Require to buy X from shop to restore rank to 1.)
+                        QueryResult result = CharacterDatabase.Query("SELECT `Rank` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
+                        if (result)
+                        {
+                            Field *fields = result->Fetch();
+                            uint32 rank = fields[0].Get<uint32>();
+                            if (rank != 0)
+                            {
+                                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+                            }
+                            else
+                            {
+                                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "You cannot queue at rank 0, visit the shop to learn more!", GOSSIP_SENDER_MAIN, 0);
+                            }
+                        }
                     }
                     // Already in queue,
                     else
@@ -290,8 +305,9 @@ public:
             QueryResult result = CharacterDatabase.Query("SELECT `CharacterGUID` FROM `brawlersguild` WHERE `CharacterGUID` = '{}'", player->GetGUID().GetCounter());
             if (!result)
             {
+                // Award 2 progress, in order to prevent instant downranking on first loss.
                 // GUID, Progress, Rank
-                CharacterDatabase.DirectExecute("REPLACE INTO `brawlersguild` (`CharacterGUID`, `Progress`, `Rank`) VALUES ('{}', '0', '1');", player->GetGUID().GetCounter());
+                CharacterDatabase.DirectExecute("REPLACE INTO `brawlersguild` (`CharacterGUID`, `Progress`, `Rank`) VALUES ('{}', '2', '1');", player->GetGUID().GetCounter());
             }
         }
         return false;
@@ -343,6 +359,7 @@ public:
         }
     }
 
+    // Rank Increase handler
     void Victory(Player* player)
     {
         if (player)
@@ -358,7 +375,7 @@ public:
                     uint32 rank = fields[0].Get<uint32>();
                     uint32 progress = fields[1].Get<uint32>();
 
-                    // Update Rank and Progress if we reach the threshold, progress does not carry over upon a rank up.
+                    // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
                     if (progress + sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10)))
                     {
                         rank += 1;
@@ -368,9 +385,9 @@ public:
                         me->Whisper(rankup.str(), LANG_UNIVERSAL, player, true);
                         CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, player->GetGUID().GetCounter());
                     }
+                    // Update Progress
                     else
                     {
-                        // Update Progress
                         progress += sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1);
                         CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, player->GetGUID().GetCounter());
                     }
@@ -378,8 +395,7 @@ public:
             }
     }
 
-    /// @TODO: Deduct points/rank  // sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2)
-    // true = timed out, false = player died
+    // Rank deduction handler     // true = timed out, false = player died
     void Defeat(bool type)
     {
         if (CurrentPlayer)
@@ -387,6 +403,34 @@ public:
             CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
             std::string msg = type ? "You ran out of time!" : "You have failed.";
             me->Whisper(msg, LANG_UNIVERSAL, CurrentPlayer, true);
+
+            if (sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) != 0)
+            {
+                QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", CurrentPlayer->GetGUID().GetCounter());
+                if (result)
+                    {
+                        Field *fields = result->Fetch();
+                        uint32 rank = fields[0].Get<uint32>();
+                        int32 progress = fields[1].Get<uint32>(); // Required to go negative, in order to downrank.
+
+                        // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
+                        if (progress - sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) < 0)
+                        {
+                            rank -= 1;
+                            std::stringstream rankup;
+                            rankup << "You've downranked to Rank " << rank << "!";
+
+                            me->Whisper(rankup.str(), LANG_UNIVERSAL, CurrentPlayer, true);
+                            CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, CurrentPlayer->GetGUID().GetCounter());
+                        }
+                        // Update Progress
+                        else
+                        {
+                            progress -= sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2);
+                            CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
+                        }
+                    }
+            }
 
             queueList.remove(CurrentPlayer);
             summons.DespawnAll();
@@ -612,7 +656,10 @@ public:
 
 enum Shop
 {
-    OPEN_SHOP                = 20,
+    OPEN_SHOP                = 19,
+
+    // Rank 0
+    BUY_RANK_0               = 20, // Required to be bought after downranking to Rank 0.
 
     // Rank 1
     SHOP_ITEM_ARCTIC_FUR     = 44128,
@@ -702,9 +749,6 @@ public:
             case OPEN_SHOP:
                 {
                     AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Welcome to the shop. |TInterface\\Icons\\inv_misc_elvencoins:16|t \n\n Rank up to unlock more! \n\n", GOSSIP_SENDER_MAIN, OPEN_SHOP);
-                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_shirt_guildtabard_01:16|t Rank 1 |TInterface\\Icons\\inv_shirt_guildtabard_01:16|t", GOSSIP_SENDER_MAIN, OPEN_SHOP);
-                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t50  | x1 Arctic Fur", GOSSIP_SENDER_MAIN, BUY_RANK_1_FUR);
-                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t50  | x20 Saronite Bar", GOSSIP_SENDER_MAIN, BUY_RANK_1_BAR);
 
                     QueryResult result = CharacterDatabase.Query("SELECT `Rank` FROM `brawlersguild` WHERE `CharacterGUID` = '{}'", player->GetGUID().GetCounter());
                     if (result)
@@ -712,6 +756,17 @@ public:
                         Field *fields = result->Fetch();
                         uint32 rank = fields[0].Get<uint32>();
 
+                        if (rank == 0)
+                        {
+                            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_shirt_guildtabard_01:16|t Rank 0 |TInterface\\Icons\\inv_shirt_guildtabard_01:16|t", GOSSIP_SENDER_MAIN, OPEN_SHOP);
+                            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_coin_02:16|t100| Buy Rank 1", GOSSIP_SENDER_MAIN, BUY_RANK_0);
+                        }
+                        if (rank >= 1)
+                        {
+                            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_shirt_guildtabard_01:16|t Rank 1 |TInterface\\Icons\\inv_shirt_guildtabard_01:16|t", GOSSIP_SENDER_MAIN, OPEN_SHOP);
+                            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t50  | x1 Arctic Fur", GOSSIP_SENDER_MAIN, BUY_RANK_1_FUR);
+                            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t50  | x20 Saronite Bar", GOSSIP_SENDER_MAIN, BUY_RANK_1_BAR);
+                        }
                         if (rank >= 2)
                         {
                             AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_shirt_guildtabard_01:16|t Rank 2 |TInterface\\Icons\\inv_shirt_guildtabard_01:16|t", GOSSIP_SENDER_MAIN, OPEN_SHOP);
@@ -736,6 +791,23 @@ public:
                     break;
                 }
 
+            // Rank 0
+            case BUY_RANK_0:
+                {
+                    if (player->HasEnoughMoney(1000000))
+                    {
+                        // Only accessible at rank 0, don't require any checks.
+                        CharacterDatabase.DirectExecute("REPLACE INTO `brawlersguild` (`CharacterGUID`, `Progress`, `Rank`) VALUES ('{}', '2', '1');", player->GetGUID().GetCounter());
+                        player->ModifyMoney(-1000000);
+                        player->GetSession()->SendNotification("You have been promoted to Rank 1.");
+                    }
+                    else
+                    {
+                        player->GetSession()->SendNotification("Not enough gold.");
+                    }
+                    CloseGossipMenuFor(player);
+                    break;
+                }
             // Rank 1
             case BUY_RANK_1_FUR:
                 {

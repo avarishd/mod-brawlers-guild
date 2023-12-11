@@ -64,7 +64,7 @@ BrawlersGuild.RankWin = 1
 
 #
 #    BrawlersGuild.RankLose
-#        Description: Rank points lost upon defeat.
+#        Description: Rank points lost upon defeat. (0 to disable)
 #        Default:     Default  = 2
 #
 
