@@ -86,11 +86,17 @@ const Position goSaronite[6] =
     {2166.56f, -4763.95f, 55.13f}
 };
 
-const Position goFrostTrap[3] =
+std::vector<Position> goFrostTrap =
 {
-    {2194.961f, -4762.389f, 55.13f},
-    {2185.750f, -4756.965f, 55.13f},
-    {2179.781f, -4753.308f, 55.13f}
+    {2191.561f, -4758.389f, 55.13f},
+    {2192.785f, -4772.621f, 55.13f},
+    {2187.672f, -4778.614f, 55.13f},
+    {2180.190f, -4782.718f, 55.13f},
+    {2170.234f, -4775.148f, 55.13f},
+    {2163.880f, -4767.833f, 55.13f},
+    {2166.656f, -4756.252f, 55.13f},
+    {2176.379f, -4750.622f, 55.13f},
+    {2175.636f, -4758.154f, 55.13f}
 };
 
 // Player queue list
@@ -362,9 +368,11 @@ public:
         uint8 rng = urand(0,5);
         cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
 
-        for (uint8 i = 0; i < urand(1,3); i++)
+        // Summon Traps
+        Acore::Containers::RandomShuffle(goFrostTrap); // Randomize every arena
+        for (uint8 i = 0; i < urand(1,2); ++i)
         {
-             cr->SummonGameObject(GO_FROST_TRAP, goFrostTrap[i].GetPositionX(), goFrostTrap[i].GetPositionY(), goFrostTrap[i].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+            cr->SummonGameObject(GO_FROST_TRAP, goFrostTrap[i].GetPositionX(), goFrostTrap[i].GetPositionY(), goFrostTrap[i].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
         }
         
     }
