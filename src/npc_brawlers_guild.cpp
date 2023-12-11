@@ -12,8 +12,8 @@
 #include "Chat.h"
 
 /* TODO
+Visuals / Announcer / Crowd (cosmetics)
 Arena Randomize/Hazards (+ boss specifics?)
-Visuals / Announcer / Crows (cosmetics)
 Rares (at max rank and beyond)
 Seasons
 */
@@ -56,6 +56,9 @@ enum BrawlersGuild
     ACTION_FIND_OTHER_PLAYERS = 5,
     EVENT_FIND_OTHER_PLAYERS  = 6,
 
+    // Arena Events
+    EVENT_ARENA_UNKNOWN    = 20,
+
     // Helix
     MY_RANK         = 10,
     ADD_TO_QUEUE    = 11,
@@ -65,6 +68,29 @@ enum BrawlersGuild
 
     SPELL_QUEUE_COOLDOWN = 200001,
     SPELL_CHEAP_SHOT     = 30986,
+};
+
+enum ArenaObjects
+{
+    GO_SARONITE_ROCK    = 196485,
+    GO_FROST_TRAP       = 202106
+};
+
+const Position goSaronite[6] =
+{
+    {2192.73f, -4764.74f, 55.13f},
+    {2174.02f, -4754.84f, 55.13f},
+    {2175.51f, -4771.19f, 55.13f},
+    {2183.32f, -4752.23f, 55.13f},
+    {2186.81f, -4778.53f, 55.13f},
+    {2166.56f, -4763.95f, 55.13f}
+};
+
+const Position goFrostTrap[3] =
+{
+    {2194.961f, -4762.389f, 55.13f},
+    {2185.750f, -4756.965f, 55.13f},
+    {2179.781f, -4753.308f, 55.13f}
 };
 
 // Player queue list
@@ -331,6 +357,16 @@ public:
     void JustSummoned(Creature* cr) override
     {
         summons.Summon(cr);
+
+        // Arena Objects, automatically cleaned with creature despawn.
+        uint8 rng = urand(0,5);
+        cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+
+        for (uint8 i = 0; i < urand(1,3); i++)
+        {
+             cr->SummonGameObject(GO_FROST_TRAP, goFrostTrap[i].GetPositionX(), goFrostTrap[i].GetPositionY(), goFrostTrap[i].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+        }
+        
     }
 
     // Defeat by timing out.
@@ -565,6 +601,12 @@ public:
                         }
                         break;
                     }
+                    case EVENT_ARENA_UNKNOWN:
+                    {
+                        //uint8 rng = urand(0,5);
+                        //me->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0);
+                        break;
+                    }
                 }
             }
         }
@@ -593,7 +635,7 @@ public:
 
     void MoveInLineOfSight(Unit* who) override
     {
-        if (who && (who->IsPet() || who->IsPlayer()))
+        if (who && (who->IsPet() || who->IsPlayer()) && !who->ToPlayer()->IsGameMaster())
         {
             if (who->IsWithinDist(me, 45))
             {
