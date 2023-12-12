@@ -137,16 +137,16 @@ Player* CurrentPlayer = nullptr;
 // Arena mobs spawn position.
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
-/// @TODO: Find a better way for that.
 // ### Season 1 ### 
+const uint32 Rank[3][4] =
+{
+    //Bob, Smiley, Dungeon Master Billey, Zerg
+    {60002, 60003, 60004, 60005},
+    // Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
+    {60006, 60007, 60008 /*60010*/, 60009},
 
-// Bob, Smiley, Dungeon Master Billey, Zerg
-const uint32 Rank1[4] = {60002, 60003, 60004, 60005};
-
-// Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
-const uint32 Rank2[4] = {60006, 60007, 60008 /*60010*/, 60009};
-
-const uint32 Rank3[4] = {60011,60012,60013,60014};
+    {60011, 60012, 60013, 60014}
+};
 
 class BrawlersGuild_Announce : public PlayerScript
 {
@@ -643,28 +643,10 @@ public:
                             if (result)
                             {
                                 Field *fields = result->Fetch();
-                                uint32 rank = fields[0].Get<uint32>();
+                                uint32 rank = fields[0].Get<uint32>(); // Offset for array starting from 0.
 
                                 // Max rank is 8, anything above that start spawning rares, with increased chance per higher rank (NYI)
-                                // Maybe a better way to handle, hate repeating things multiple times...
-                                switch (rank)
-                                {
-                                    case 1:
-                                    {
-                                        me->SummonCreature(Rank1[urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
-                                        break;
-                                    }
-                                    case 2:
-                                    {
-                                        me->SummonCreature(Rank2[urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
-                                        break;
-                                    }
-                                    case 3:
-                                    {
-                                        me->SummonCreature(Rank3[urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
-                                        break;
-                                    }
-                                }
+                                me->SummonCreature(Rank[rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
 
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
