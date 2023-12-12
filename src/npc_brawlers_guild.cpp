@@ -12,11 +12,18 @@
 #include "Chat.h"
 
 /* TODO
-Visuals / Announcer / Crowd (cosmetics)
 Arena Randomize/Hazards (+ boss specifics?) ~~~
 Rares (at max rank and beyond)
 Seasons
+
+announcer/caster path, ignore Z
+(@PATH, XX, 2197.319, -4766.330, 76.80635, 2.05853, 0, 0, 0, 100, 0),
+(@PATH, XX, 2184.986, -4747.263, 74.56445, 2.88320, 0, 0, 0, 100, 0),
+(@PATH, XX, 2162.103, -4753.404, 73.12794, 4.06915, 0, 0, 0, 100, 0),
+(@PATH, XX, 2163.262, -4777.657, 73.05431, 5.41925, 0, 0, 0, 100, 0),
+(@PATH, XX, 2185.997, -4784.535, 74.77556, 0.56549, 0, 0, 0, 100, 0),
 */
+
 
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
@@ -66,7 +73,7 @@ enum BrawlersGuild
     EVENT_ARENA_UNKNOWN    = 20,
 
     // Crowd Events
-    EVENT_CROWD_LOAD   = 21,
+    EVENT_LOAD_ARENA_OBJECTS   = 21,
     EVENT_CROWD_VICTORY = 22,
     EVENT_CROWD_DEFEAT  = 23,
 
@@ -84,7 +91,9 @@ enum BrawlersGuild
 enum ArenaObjects
 {
     GO_SARONITE_ROCK    = 196485,
-    GO_FROST_TRAP       = 202106
+    GO_FROST_TRAP       = 202106,
+
+    NPC_FIREWORK_TONK   = 59992, // Firework on Victory. // Fire(cosmetic) 46679, 51195
 };
 
 const Position goSaronite[6] =
@@ -115,6 +124,9 @@ std::list<Player*> queueList;
 
 // Crowd list
 std::list<Creature*> spectatorList;
+
+// Firework tonks list
+std::list<Creature*> fireworkList;
 
 // Crowd emotes
 const uint32 crowdEmotes[5] = {75, 11, 4, 18, 5};
@@ -376,7 +388,7 @@ public:
     {
         npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me)
         {
-            events.ScheduleEvent(EVENT_CROWD_LOAD, 5s);
+            events.ScheduleEvent(EVENT_LOAD_ARENA_OBJECTS, 5s);
         }
 
 
@@ -457,6 +469,7 @@ public:
                 }
             }
 
+        Firework();
         CrowdReaction();
         }
     }
@@ -503,6 +516,17 @@ public:
             summons.DespawnAll();
             CurrentPlayer = nullptr;
             events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+        }
+    }
+
+    void Firework()
+    {
+        if (!fireworkList.empty())
+        {
+            for (Creature* tonks : fireworkList)
+            {
+                tonks->AI()->SetData(1, 1);
+            }
         }
     }
 
@@ -663,10 +687,11 @@ public:
                         break;
                     }
                     // Ran only once
-                    case EVENT_CROWD_LOAD:
+                    case EVENT_LOAD_ARENA_OBJECTS:
                     {
-                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 65.0f);
-                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 65.0f);
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 75.0f);
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 75.0f);
+                        me->GetCreatureListWithEntryInGrid(fireworkList, NPC_FIREWORK_TONK, 45.0f);
                         break;
                     }
                     case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
