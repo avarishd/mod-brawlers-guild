@@ -691,7 +691,7 @@ public:
                     {
                         me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 75.0f);
                         me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 75.0f);
-                        me->GetCreatureListWithEntryInGrid(fireworkList, NPC_FIREWORK_TONK, 45.0f);
+                        me->GetCreatureListWithEntryInGrid(fireworkList, NPC_FIREWORK_TONK, 55.0f);
                         break;
                     }
                     case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
