@@ -13,7 +13,7 @@
 
 /* TODO
 Visuals / Announcer / Crowd (cosmetics)
-Arena Randomize/Hazards (+ boss specifics?)
+Arena Randomize/Hazards (+ boss specifics?) ~~~
 Rares (at max rank and beyond)
 Seasons
 */
@@ -33,6 +33,12 @@ public:
         BrawlersGuild_AnnounceModule = sConfigMgr->GetOption<bool>("BrawlersGuild.Announce", 1);
         BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
     }
+};
+
+enum Crowd
+{
+    NPC_CROWD_ARENA_SPECTATOR   = 59994,
+    NPC_CROWD_ARENA_SPECTATOR_2 = 59993,
 };
 
 enum BrawlersGuild 
@@ -58,6 +64,11 @@ enum BrawlersGuild
 
     // Arena Events
     EVENT_ARENA_UNKNOWN    = 20,
+
+    // Crowd Events
+    EVENT_CROWD_LOAD   = 21,
+    EVENT_CROWD_VICTORY = 22,
+    EVENT_CROWD_DEFEAT  = 23,
 
     // Helix
     MY_RANK         = 10,
@@ -101,6 +112,12 @@ std::vector<Position> goFrostTrap =
 
 // Player queue list
 std::list<Player*> queueList;
+
+// Crowd list
+std::list<Creature*> spectatorList;
+
+// Crowd emotes
+const uint32 crowdEmotes[5] = {75, 11, 4, 18, 5};
 
 // The current player that is about to/already fighting in the arena.
 Player* CurrentPlayer = nullptr;
@@ -146,12 +163,12 @@ public:
             if (mapId == 1 && areaId == 1637)
             {
                 float z = player->GetPositionZ();
-
+                //LOG_ERROR("error", "CurrentPlayer died");
                 // Center of the arena and ground elevation + jump Z.
-                if (player->IsInRange3d(2178.2, -4764.79, 55.13, 0, 45) && (z >= 55 && z <= 57))
+                if (player->IsInRange2d(2178.2f, -4764.79f, 0, 45.0f) && (z >= 55.0f && z <= 57.0f))
                 {
-                    // Defeat by dying.
-                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 45))
+                    //LOG_ERROR("error", "IsInRange2d");
+                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 75))
                     {
                         t->AI()->DoAction(ACTION_DEFEAT);
                     }
@@ -357,7 +374,10 @@ public:
 
     struct npc_player_detectorAI : public ScriptedAI
     {
-        npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me) {}
+        npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me)
+        {
+            events.ScheduleEvent(EVENT_CROWD_LOAD, 5s);
+        }
 
 
     void JustSummoned(Creature* cr) override
@@ -407,36 +427,38 @@ public:
     void Victory(Player* player)
     {
         if (player)
-            {
+        {
             me->Whisper("Victory!", LANG_UNIVERSAL, player, true);
             player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetIntDefault("BrawlersGuild.CoinsVictoryReward", 2));
             player->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
 
             QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
             if (result)
+            {
+                Field *fields = result->Fetch();
+                uint32 rank = fields[0].Get<uint32>();
+                uint32 progress = fields[1].Get<uint32>();
+
+                // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
+                if (progress + sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10)))
                 {
-                    Field *fields = result->Fetch();
-                    uint32 rank = fields[0].Get<uint32>();
-                    uint32 progress = fields[1].Get<uint32>();
+                    rank += 1;
+                    std::stringstream rankup;
+                    rankup << "You've reached Rank " << rank << "!";
 
-                    // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                    if (progress + sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10)))
-                    {
-                        rank += 1;
-                        std::stringstream rankup;
-                        rankup << "You've reached Rank " << rank << "!";
-
-                        me->Whisper(rankup.str(), LANG_UNIVERSAL, player, true);
-                        CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, player->GetGUID().GetCounter());
-                    }
-                    // Update Progress
-                    else
-                    {
-                        progress += sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1);
-                        CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, player->GetGUID().GetCounter());
-                    }
+                    me->Whisper(rankup.str(), LANG_UNIVERSAL, player, true);
+                    CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, player->GetGUID().GetCounter());
+                }
+                // Update Progress
+                else
+                {
+                    progress += sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1);
+                    CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, player->GetGUID().GetCounter());
                 }
             }
+
+        CrowdReaction();
+        }
     }
 
     // Rank deduction handler     // true = timed out, false = player died
@@ -452,34 +474,58 @@ public:
             {
                 QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", CurrentPlayer->GetGUID().GetCounter());
                 if (result)
+                {
+                    Field *fields = result->Fetch();
+                    uint32 rank = fields[0].Get<uint32>();
+                    int32 progress = fields[1].Get<uint32>(); // Required to go negative, in order to downrank.
+
+                    // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
+                    if (progress - sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) < 0)
                     {
-                        Field *fields = result->Fetch();
-                        uint32 rank = fields[0].Get<uint32>();
-                        int32 progress = fields[1].Get<uint32>(); // Required to go negative, in order to downrank.
+                        rank -= 1;
+                        std::stringstream rankup;
+                        rankup << "You've downranked to Rank " << rank << "!";
 
-                        // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                        if (progress - sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) < 0)
-                        {
-                            rank -= 1;
-                            std::stringstream rankup;
-                            rankup << "You've downranked to Rank " << rank << "!";
-
-                            me->Whisper(rankup.str(), LANG_UNIVERSAL, CurrentPlayer, true);
-                            CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, CurrentPlayer->GetGUID().GetCounter());
-                        }
-                        // Update Progress
-                        else
-                        {
-                            progress -= sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2);
-                            CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
-                        }
+                        me->Whisper(rankup.str(), LANG_UNIVERSAL, CurrentPlayer, true);
+                        CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '0', `Rank` = '{}' WHERE `CharacterGUID` = '{}';", rank, CurrentPlayer->GetGUID().GetCounter());
                     }
+                    // Update Progress
+                    else
+                    {
+                        progress -= sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2);
+                        CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
+                    }
+                }
             }
 
+            CrowdReaction();
             queueList.remove(CurrentPlayer);
             summons.DespawnAll();
             CurrentPlayer = nullptr;
             events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+        }
+    }
+
+    void CrowdReaction()
+    {
+        if (!spectatorList.empty())
+        {
+            for (Creature* spectators : spectatorList)
+            {
+                if (roll_chance_i(50))
+                {
+                    if (spectators)
+                    {
+                        uint8 rng = urand(0,4);
+                        spectators->HandleEmoteCommand(crowdEmotes[rng]);
+
+                        if (roll_chance_i(50))
+                        {
+                            spectators->HandleEmoteCommand(26); //EMOTE_STATE_STAND
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -526,6 +572,7 @@ public:
                             {
                                 if (player)
                                 {
+                                    //LOG_ERROR("error", "CurrentPlayer [{}]", player->GetName().c_str());
                                     CurrentPlayer = player;
                                     break;
                                 }
@@ -613,6 +660,17 @@ public:
                     {
                         //uint8 rng = urand(0,5);
                         //me->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0);
+                        break;
+                    }
+                    // Ran only once
+                    case EVENT_CROWD_LOAD:
+                    {
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 65.0f);
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 65.0f);
+                        break;
+                    }
+                    case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
+                    {
                         break;
                     }
                 }

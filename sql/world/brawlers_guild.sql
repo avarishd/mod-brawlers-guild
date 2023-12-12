@@ -108,3 +108,57 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
 DELETE FROM `creature` WHERE (`id1` = 59995);
 INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
 (3110441, 59995, 0, 0, 1, 0, 0, 1, 1, 0, 2178.22, -4764.79, 55.1381, 0.942478, 300, 0, 0, 42, 0, 0, 0, 33554432, 0, '', NULL, 0, NULL);
+
+-- arena spectators
+DELETE FROM `creature_template` WHERE (`entry` = 59994);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
+(59994, 0, 0, 0, 0, 0, 9069, 9070, 9071, 9072, 'Arena Spectator', NULL, NULL, 0, 70, 80, 0, 35, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 2000, 2000, 1, 1, 2, 0, 2048, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartAI', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 2, '', 12340);
+DELETE FROM `smart_scripts` WHERE (`source_type` = 0 AND `entryorguid` = 59994);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(59994, 0, 0, 0, 11, 0, 50, 0, 0, 0, 0, 0, 0, 0, 90, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - On Respawn - Set Flag Standstate Sit Down'),
+(59994, 0, 1, 2, 1, 0, 50, 0, 10000, 30000, 10000, 30000, 0, 0, 10, 22, 4, 5, 11, 21, 25, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Play Random Emote'),
+(59994, 0, 2, 0, 61, 0, 50, 0, 0, 0, 0, 0, 0, 0, 91, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Remove FlagStandstate Sit Down'),
+(59994, 0, 3, 0, 1, 0, 50, 0, 30000, 50000, 30000, 50000, 0, 0, 90, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Set Flag Standstate Sit Down');
+DELETE FROM `creature` WHERE (`id1` = 59994);
+INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
+(3110444, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2187.68, -4799.1, 69.2771, 1.83551, 300, 0, 0, 4042, 3809, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110445, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2191.09, -4801.61, 71.7994, 1.9219, 300, 0, 0, 4042, 3809, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110446, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2195.24, -4800.17, 71.9483, 1.92976, 300, 0, 0, 3722, 3561, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110447, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2195.05, -4796.63, 69.5951, 1.96903, 300, 0, 0, 3422, 3309, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110448, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2153.2, -4791.66, 70.2852, 0.790929, 300, 0, 0, 3240, 3155, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110449, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2145.96, -4786.94, 72.0682, 0.790929, 300, 0, 0, 3722, 3561, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110450, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2138.08, -4774.16, 72.8311, 0.115486, 300, 0, 0, 4155, 3893, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110451, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2148.36, -4741.24, 71.4997, 5.72323, 300, 0, 0, 4155, 3893, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110452, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2142, -4756.69, 70.2852, 5.99026, 300, 0, 0, 3933, 3725, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110453, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2174.18, -4723.97, 72.8293, 4.67865, 300, 0, 0, 3933, 3725, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110454, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2184.07, -4727.8, 70.8666, 4.45481, 300, 0, 0, 3240, 3155, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110455, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2185.48, -4728.08, 70.9617, 4.3959, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110456, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2209.51, -4743.88, 70.2847, 3.8422, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110457, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2212.99, -4758.6, 69.1504, 3.29635, 300, 0, 0, 3933, 3725, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110458, 59994, 0, 0, 1, 0, 0, 1, 1, 0, 2217.33, -4767.35, 71.7272, 3.15105, 300, 0, 0, 4274, 3994, 0, 0, 0, 0, '', NULL, 0, NULL);
+DELETE FROM `creature_template` WHERE (`entry` = 59993);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
+(59993, 0, 0, 0, 0, 0, 29572, 29579, 25431, 2860, 'Arena Spectator', NULL, NULL, 0, 70, 80, 0, 35, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 2000, 2000, 1, 1, 2, 0, 2048, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartAI', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 2, '', 12340);
+DELETE FROM `smart_scripts` WHERE (`source_type` = 0 AND `entryorguid` = 59993);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(59993, 0, 0, 0, 11, 0, 50, 0, 0, 0, 0, 0, 0, 0, 90, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - On Respawn - Set Flag Standstate Sit Down'),
+(59993, 0, 1, 2, 1, 0, 50, 0, 10000, 30000, 10000, 30000, 0, 0, 10, 22, 4, 5, 11, 21, 25, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Play Random Emote'),
+(59993, 0, 2, 0, 61, 0, 50, 0, 0, 0, 0, 0, 0, 0, 91, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Remove FlagStandstate Sit Down'),
+(59993, 0, 3, 0, 1, 0, 50, 0, 30000, 50000, 30000, 50000, 0, 0, 90, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Arena Spectator - Out of Combat - Set Flag Standstate Sit Down');
+DELETE FROM `creature` WHERE (`id1` = 59993);
+INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
+(3110461, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2190.74, -4800.09, 70.7193, 2.03971, 300, 0, 0, 3240, 3155, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110462, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2165.96, -4800.58, 70.2852, 1.2229, 300, 0, 0, 4155, 3893, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110463, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2158.61, -4800.81, 72.8294, 1.01869, 300, 0, 0, 3422, 3309, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110464, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2150.26, -4791.61, 71.8545, 0.73595, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110465, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2150.21, -4786.92, 69.7826, 0.767366, 300, 0, 0, 4274, 3994, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110466, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2143.42, -4777.62, 70.2849, 0.374666, 300, 0, 0, 3422, 3309, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110467, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2143.52, -4747.77, 71.9087, 5.80962, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110468, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2147.19, -4746.18, 70.2849, 5.80962, 300, 0, 0, 3722, 3561, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110469, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2150.17, -4743.57, 69.564, 5.80962, 300, 0, 0, 3422, 3309, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110470, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2158.69, -4728.57, 72.8306, 5.05564, 300, 0, 0, 3240, 3155, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110471, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2167.72, -4729.34, 70.2861, 4.98888, 300, 0, 0, 3825, 3643, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110472, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2190.43, -4731.62, 69.5029, 4.52549, 300, 0, 0, 4155, 3893, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110473, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2203.03, -4732.09, 72.8298, 4.12494, 300, 0, 0, 4274, 3994, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110474, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2215.83, -4747.27, 72.8298, 3.59087, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL),
+(3110475, 59993, 0, 0, 1, 0, 0, 1, 1, 0, 2213.75, -4762.85, 69.425, 3.33954, 300, 0, 0, 3519, 3387, 0, 0, 0, 0, '', NULL, 0, NULL);
