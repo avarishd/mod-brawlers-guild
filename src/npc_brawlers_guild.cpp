@@ -12,18 +12,9 @@
 #include "Chat.h"
 
 /* TODO
-Arena Randomize/Hazards (+ boss specifics?) ~~~
 Rares (at max rank and beyond)
 Seasons
-
-announcer/caster path, ignore Z
-(@PATH, XX, 2197.319, -4766.330, 76.80635, 2.05853, 0, 0, 0, 100, 0),
-(@PATH, XX, 2184.986, -4747.263, 74.56445, 2.88320, 0, 0, 0, 100, 0),
-(@PATH, XX, 2162.103, -4753.404, 73.12794, 4.06915, 0, 0, 0, 100, 0),
-(@PATH, XX, 2163.262, -4777.657, 73.05431, 5.41925, 0, 0, 0, 100, 0),
-(@PATH, XX, 2185.997, -4784.535, 74.77556, 0.56549, 0, 0, 0, 100, 0),
 */
-
 
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
@@ -94,7 +85,16 @@ enum ArenaObjects
     GO_FROST_TRAP       = 202106,
 
     NPC_FIREWORK_TONK   = 59992, // Firework on Victory. // Fire(cosmetic) 46679, 51195
+    NPC_ARENA_ANNOUNCER = 59991
 };
+
+enum Announcer
+{
+    ACTION_ANNOUNCE_VICTORY      = 1,
+    ACTION_ANNOUNCE_DEFEAT_TIME  = 2,
+    ACTION_ANNOUNCE_DEFEAT_DEATH = 3
+};
+
 
 const Position goSaronite[6] =
 {
@@ -130,6 +130,8 @@ std::list<Creature*> fireworkList;
 
 // Crowd emotes
 const uint32 crowdEmotes[5] = {75, 11, 4, 18, 5};
+// Crowd Cheer sounds
+const uint32 crowdCheer[4] = {8571, 8572, 8573, 8574};
 
 // The current player that is about to/already fighting in the arena.
 Player* CurrentPlayer = nullptr;
@@ -175,16 +177,14 @@ public:
             if (mapId == 1 && areaId == 1637)
             {
                 float z = player->GetPositionZ();
-                //LOG_ERROR("error", "CurrentPlayer died");
+
                 // Center of the arena and ground elevation + jump Z.
                 if (player->IsInRange2d(2178.2f, -4764.79f, 0, 45.0f) && (z >= 55.0f && z <= 57.0f))
                 {
-                    //LOG_ERROR("error", "IsInRange2d");
-                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 75))
+                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 50))
                     {
                         t->AI()->DoAction(ACTION_DEFEAT);
                     }
-                    //LOG_ERROR("error", "Player [{}] just died.", player->GetName().c_str());
                 }
             }
         }
@@ -469,8 +469,16 @@ public:
                 }
             }
 
-        Firework();
-        CrowdReaction();
+            if (Creature* ann = ObjectAccessor::GetCreature(*me, announcer))
+            {
+                ann->AI()->DoAction(ACTION_ANNOUNCE_VICTORY);
+            }
+
+            if (roll_chance_i(10))
+                me->PlayRadiusSound(crowdCheer[urand(0,3)], 50);
+
+            Firework();
+            CrowdReaction();
         }
     }
 
@@ -509,6 +517,11 @@ public:
                         CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
                     }
                 }
+            }
+
+            if (Creature* ann = ObjectAccessor::GetCreature(*me, announcer))
+            {
+                ann->AI()->DoAction(type ? ACTION_ANNOUNCE_DEFEAT_TIME : ACTION_ANNOUNCE_DEFEAT_DEATH);
             }
 
             CrowdReaction();
@@ -596,7 +609,6 @@ public:
                             {
                                 if (player)
                                 {
-                                    //LOG_ERROR("error", "CurrentPlayer [{}]", player->GetName().c_str());
                                     CurrentPlayer = player;
                                     break;
                                 }
@@ -643,9 +655,10 @@ public:
                             if (result)
                             {
                                 Field *fields = result->Fetch();
-                                uint32 rank = fields[0].Get<uint32>(); // Offset for array starting from 0.
+                                uint32 rank = fields[0].Get<uint32>();
 
                                 // Max rank is 8, anything above that start spawning rares, with increased chance per higher rank (NYI)
+                                // Offset for array starting from 0. (Only used here)
                                 me->SummonCreature(Rank[rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
 
                                 AddRatGossip(false);
@@ -671,9 +684,13 @@ public:
                     // Ran only once
                     case EVENT_LOAD_ARENA_OBJECTS:
                     {
-                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 75.0f);
-                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 75.0f);
-                        me->GetCreatureListWithEntryInGrid(fireworkList, NPC_FIREWORK_TONK, 55.0f);
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR, 50);
+                        me->GetCreatureListWithEntryInGrid(spectatorList, NPC_CROWD_ARENA_SPECTATOR_2, 50);
+                        me->GetCreatureListWithEntryInGrid(fireworkList, NPC_FIREWORK_TONK, 40);
+                        if (Creature* c = me->FindNearestCreature(NPC_ARENA_ANNOUNCER, 40))
+                        {
+                            announcer = c->GetGUID();
+                        }
                         break;
                     }
                     case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
@@ -688,6 +705,7 @@ public:
     private:
         EventMap events;
         SummonList summons;
+        ObjectGuid announcer;
     };
 
     CreatureAI* GetAI(Creature* creature) const override
@@ -738,6 +756,104 @@ public:
     {
         return new npc_other_players_detectorAI (creature);
     }
+};
+
+const std::string annVictory[10] =
+{
+    {"Ladies and gentlemen, let's give it up for our incredible champion!"},
+    {"And there we have it, folks! Another victorious win for the fighter of the century!"},
+    {"A stunning display of skill and power! Our fighter takes home the well-deserved victory!"},
+    {"What an extraordinary performance! Our fighter has triumphed once again, proving their unparalleled dominance!"},
+    {"The crowd goes wild as our warrior emerges triumphant! What a mesmerizing show!"},
+    {"Incredible! Our fighter outshines the competition, solidifying their place in the hall of champions"},
+    {"The roar of the crowd echoes the triumph of our champion! A well-deserved triumph!"},
+    {"Unbelievable! Our fighter emerged as the ultimate victor, leaving a trail of awe and admiration!"},
+    {"A resounding victory! Our fighter has electrified this arena with their indomitable spirit!"},
+    {"It's official, folks! Our fighter has risen to the top, leaving their opponents in awe and us in pure amazement!"}
+};
+
+const std::string annTime[10] =
+{
+    {"Time's up! Don't worry, I'm sure the excitement will continue... somewhere else."},
+    {"Well, folks, that's all she wrote. Time ran out, and so did our hopes for a thrilling finish."},
+    {"And the clock hits zero! It's like watching paint dry, but with more disappointment."},
+    {"Time flies when you're... bored out of your mind. Thanks for making the minutes feel like hours!"},
+    {"Time has expired, and so has our patience. Let's hope the action picks up next time!"},
+    {"Tick tock, tick tock, and just like that, the excitement went down the drain."},
+    {"Time ran out, just like my enthusiasm. Let's keep the pity party going, shall we?"},
+    {"No more time left! Reality check: this could've been better spent doing something else."},
+    {"Time's up, folks! File this game under 'forgettable' and move on with your lives."},
+    {"And just like that, the clock steals away the opportunity for anything exciting to happen."}
+};
+
+const std::string annDeath[10] =
+{
+    {"And that's one less hero in the arena! They'll be missed. By someone. Probably."},
+    {"Well, well, well, looks like someone just got schooled! Maybe they should've studied harder."},
+    {"Ouch! That was a face plant for the books! Better luck next time, pal."},
+    {"And the player has been knocked out! Time to start reevaluating life choices, my friend."},
+    {"Down goes another one! That's gotta sting, both physically and emotionally."},
+    {"Game over for that poor soul. May they find solace in respawns and redemption."},
+    {"RIP, player. We hardly knew ya. And honestly, we probably won't remember ya either."},
+    {"That was a swift defeat! They couldn't even blink before they were knocked out."},
+    {"And... crash! This player's dreams just shattered faster than a screen protector."},
+    {"Another one bites the dust! Can someone get these players a map? They seem lost."}
+};
+
+
+class npc_arena_announcer : public CreatureScript
+{
+public:
+    npc_arena_announcer() : CreatureScript("npc_arena_announcer") { }
+
+    struct npc_arena_announcerAI : public ScriptedAI
+    {
+        npc_arena_announcerAI(Creature* creature) : ScriptedAI(creature) {}
+
+    void Announce(std::string type)
+    {
+        // Find a way to consolidate that
+        uint8 rng = urand(0,9);
+        if (type == "Victory")
+        {
+            me->Yell(annVictory[rng], LANG_UNIVERSAL);
+        }
+        else if (type == "DefeatTime")
+        {
+            me->Yell(annTime[rng], LANG_UNIVERSAL);
+        }
+        else
+        {
+            me->Yell(annDeath[rng], LANG_UNIVERSAL);
+        }
+
+    }
+
+    void DoAction(int32 action) override
+    {
+        if (action == ACTION_ANNOUNCE_VICTORY)
+        {
+            Announce("Victory");
+        }
+
+        if (action == ACTION_ANNOUNCE_DEFEAT_TIME)
+        {
+            Announce("DefeatTime");
+        }
+
+        if (action == ACTION_ANNOUNCE_DEFEAT_DEATH)
+        {
+            Announce("DefeatDeath");
+        }
+    }
+
+    };
+
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new npc_arena_announcerAI (creature);
+    }
+
 };
 
 class npc_anti_stuck : public CreatureScript
@@ -1033,6 +1149,7 @@ void AddBrawlersGuildScripts()
     new npc_brawlers_guild();
     new npc_player_detector();
     new npc_other_players_detector();
+    new npc_arena_announcer();
     new npc_anti_stuck();
     new npc_brawlers_vendor();
 }

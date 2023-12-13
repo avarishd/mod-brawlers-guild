@@ -34,10 +34,9 @@ INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, 
 DELETE FROM `creature_template` WHERE (`entry` = 60001);
 INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
 (60001, 0, 0, 0, 0, 0, 169, 0, 0, 0, 'Player Detector', '', '', 0, 1, 1, 0, 35, 0, 1, 1.14286, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 130, 'npc_player_detector', 0);
-
 DELETE FROM `creature` WHERE (`id1` = 60001);
 INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
-(3110429, 60001, 0, 0, 1, 0, 0, 1, 1, 0, 2199, -4745, 55.13, 4.1, 300, 0, 0, 42, 0, 0, 0, 33554432, 0, '', NULL, 0, NULL);
+(3110429, 60001, 0, 0, 1, 0, 0, 1, 1, 0, 2178.22, -4764.79, 55.1381, 4.1, 300, 0, 0, 42, 0, 0, 0, 33554432, 0, '', NULL, 0, NULL);
 
 -- Item (PH item)
 DELETE FROM `item_template` WHERE (`entry` = 43003);
@@ -177,3 +176,21 @@ INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, 
 DELETE FROM `smart_scripts` WHERE (`source_type` = 0 AND `entryorguid` = 59992);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (59992, 0, 0, 0, 38, 0, 100, 0, 1, 1, 0, 0, 0, 0, 11, 11543, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Goblin Firework Tonk - On Data Set 1 1 - Cast \'Red, White and Blue Firework\'');
+
+-- arena annnouncer
+DELETE FROM `creature_template` WHERE (`entry` = 59991);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
+(59991, 0, 0, 0, 0, 0, 17192, 0, 0, 0, 'Jesse', '', NULL, 0, 1, 1, 0, 35, 0, 1, 1, 1, 1, 1, 1.5, 0, 0, 1, 2000, 2000, 1, 1, 1, 33554432, 0, 0, 0, 0, 0, 0, 0, 9, 1048576, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 100, 1, 0, 0, 2, 'npc_arena_announcer', 12340);
+DELETE FROM `creature_template_addon` WHERE (`entry` = 59991);
+INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `visibilityDistanceType`, `auras`) VALUES
+(59991, 5999100, 0, 0, 0, 0, 0, '');
+DELETE FROM `creature` WHERE (`id1` = 59991);
+INSERT INTO `creature` (`guid`, `id1`, `id2`, `id3`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
+(3110485, 59991, 0, 0, 1, 0, 0, 1, 1, 0, 2197.32, -4766.33, 75, 2.05853, 120, 0, 0, 1, 0, 2, 0, 0, 0, '', 0, 0, NULL);
+DELETE FROM `waypoint_data` WHERE `id`=5999100;
+INSERT INTO `waypoint_data` (`id`, `point`, `position_x`, `position_y`, `position_z`, `orientation`, `delay`, `move_type`, `action`, `action_chance`, `wpguid`) VALUES
+(5999100, 1, 2197.32, -4766.33, 75, 2.05853, 0, 0, 0, 100, 0),
+(5999100, 2, 2184.99, -4747.26, 75, 2.8832, 0, 0, 0, 100, 0),
+(5999100, 3, 2162.1, -4753.4, 75, 4.06915, 0, 0, 0, 100, 0),
+(5999100, 4, 2163.26, -4777.66, 75, 5.41925, 0, 0, 0, 100, 0),
+(5999100, 5, 2186, -4784.54, 75, 0.56549, 0, 0, 0, 100, 0);
