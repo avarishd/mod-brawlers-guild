@@ -11,9 +11,12 @@
 
 /* TODO
 Rares (at max rank and beyond)
+Correct tuning (requires testing with proper ilvl) (After all creatures for s1 are done (+ rares))
+More scripted fights (outside of SAI)
+Custom spells (both scripting and new spells in general)
+Custom area fights (e.g void zones closing in the arena)
 Seasons
 Maybe VIP area at max rank?
-Correct tuning
 */
 
 bool BrawlersGuild_Enabled;
@@ -152,7 +155,7 @@ Player* CurrentPlayer = nullptr;
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
 // [Season][Rank][Creatures]
-const uint32 Rank[2][3][4] =
+const uint32 Rank[2][8][4] =
 {
     // Season 1
     {
@@ -164,9 +167,29 @@ const uint32 Rank[2][3][4] =
 
         // Rank 3 - Mazhareen, Gorenog, Darkfeather, Ming Li
         {60011, 60012, 60013, 60014},
+
+        // Rank 4 - Crash, Illaria the Illusionist (+pets), Circuitron, Terror
+        {60015, 60016 /*60019*/, 60017, 60018},
+
+        // Rank 5 - 
+        {60020, 60021, 60022, 60023},
+
+        // Rank 6 - 
+        {60019, 60020, 60021, 60021},
+
+        // Rank 7 - 
+        {60019, 60020, 60021, 60021},
+
+        // Rank 8 - 
+        {60019, 60020, 60021, 60021},
     },
     // Season 2 NYI
     {
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
         {60011, 60012, 60013, 60014},
         {60011, 60012, 60013, 60014},
         {60011, 60012, 60013, 60014},
@@ -420,8 +443,11 @@ public:
         summons.Summon(cr);
 
         // Arena Objects, automatically cleaned with creature despawn.
-        uint8 rng = urand(0,5);
-        cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+        if (cr->GetEntry() != 60015) // Exceptions for: Crash
+        {
+            uint8 rng = urand(0,5);
+            cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+        }
 
         /*
         // Summon Traps
