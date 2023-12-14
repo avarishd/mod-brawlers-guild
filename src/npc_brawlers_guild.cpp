@@ -5,8 +5,6 @@
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
 #include "ScriptedCreature.h"
-#include "ArenaTeam.h"
-#include "ArenaTeamMgr.h"
 #include "World.h"
 #include "Player.h"
 #include "Chat.h"
@@ -14,6 +12,8 @@
 /* TODO
 Rares (at max rank and beyond)
 Seasons
+Maybe VIP area at max rank?
+Correct tuning
 */
 
 bool BrawlersGuild_Enabled;
@@ -30,6 +30,8 @@ public:
         BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", 1);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetOption<bool>("BrawlersGuild.Announce", 1);
         BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
+        if (BrawlersGuild_CurrentSeason < 1 && BrawlersGuild_CurrentSeason > 4)
+            LOG_ERROR("error", "Config BrawlersGuild.CurrentSeason has invalid value [{}].", BrawlersGuild_CurrentSeason);
     }
 };
 
@@ -139,15 +141,26 @@ Player* CurrentPlayer = nullptr;
 // Arena mobs spawn position.
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
-// ### Season 1 ### 
-const uint32 Rank[3][4] =
+// [Season][Rank][Creatures]
+const uint32 Rank[2][3][4] =
 {
-    //Bob, Smiley, Dungeon Master Billey, Zerg
-    {60002, 60003, 60004, 60005},
-    // Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
-    {60006, 60007, 60008 /*60010*/, 60009},
+    // Season 1
+    {
+        // Rank 1 - Bob, Smiley, Dungeon Master Billey, Zerg
+        {60002, 60003, 60004, 60005},
 
-    {60011, 60012, 60013, 60014}
+        // Rank 2 - Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
+        {60006, 60007, 60008 /*60010*/, 60009},
+
+        // Rank 3 -
+        {60011, 60012, 60013, 60014},
+    },
+    // Season 2
+    {
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
+        {60011, 60012, 60013, 60014},
+    }
 };
 
 class BrawlersGuild_Announce : public PlayerScript
@@ -218,7 +231,7 @@ public:
                             uint32 rank = fields[0].Get<uint32>();
                             if (rank != 0)
                             {
-                                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Add me to the queue!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
+                                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Sign me up for a fight!", GOSSIP_SENDER_MAIN, ADD_TO_QUEUE);
                             }
                             else
                             {
@@ -658,8 +671,7 @@ public:
                                 uint32 rank = fields[0].Get<uint32>();
 
                                 // Max rank is 8, anything above that start spawning rares, with increased chance per higher rank (NYI)
-                                // Offset for array starting from 0. (Only used here)
-                                me->SummonCreature(Rank[rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
+                                me->SummonCreature(Rank[BrawlersGuild_CurrentSeason - 1][rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
 
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);

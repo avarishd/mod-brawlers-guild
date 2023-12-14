@@ -21,7 +21,12 @@ BrawlersGuild.Announce = 1
 #
 #    BrawlersGuild.CurrentSeason
 #        Description: Current season of BrawlersGuild.
-#        Default:     Default  = 1 (Only 1 for now)
+#        Default:     Default  = 1
+#
+#        Season 1 - Tier 7  (213~)
+#        Season 2 - Tier 8  (232~)
+#        Season 3 - Tier 9  (245~)
+#        Season 4 - Tier 10 (264~)
 #
 
 BrawlersGuild.CurrentSeason = 1
