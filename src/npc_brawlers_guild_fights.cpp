@@ -22,7 +22,6 @@ enum CrashEvents
     EVENT_GAZE                = 3,
     EVENT_JUMP_BACK           = 4,
     EVENT_TRAMPLE             = 5,
-    EVENT_COMBAT_CHECK        = 6,
 };
 
 class bguild_crash : public CreatureScript
@@ -37,12 +36,7 @@ public:
     void JustEngagedWith(Unit* who) override
     {
         events.RescheduleEvent(EVENT_JUMP_MIDDLE, 20s);
-        events.RescheduleEvent(EVENT_COMBAT_CHECK, 5s);
         TargetGUID.Clear();
-        CombatGUID.Clear();
-
-        // If initial target dies we reset (prevent abusing), need a better check
-        CombatGUID = who->GetGUID();
     }
 
     void AttackStart(Unit* who) override
@@ -63,23 +57,6 @@ public:
 
         switch (events.ExecuteEvent())
         {
-            case EVENT_COMBAT_CHECK:
-            {
-                if (Unit* target = ObjectAccessor::GetUnit(*me, CombatGUID))
-                {
-                    if (me->IsWithinRange(target, 55) && target->IsAlive())
-                    {
-                        events.Repeat(2s);
-                    }
-                    else
-                        me->DespawnOrUnsummon();
-                }
-                else
-                {
-                    me->DespawnOrUnsummon();
-                }
-                break;
-            }
             case EVENT_JUMP_MIDDLE:
             {
                 // Charge highest threat target.
@@ -143,7 +120,7 @@ public:
             {
                 me->DisableSpline();
                 me->GetMotionMaster()->Clear();
-                me->GetMotionMaster()->MoveCharge(destX, destY, destZ + 1.0f, 15.0f);
+                me->GetMotionMaster()->MoveCharge(destX, destY, destZ + 1.0f, 18.0f);
                 break;
             }
         }
@@ -196,7 +173,6 @@ public:
     private:
         EventMap events;
         ObjectGuid TargetGUID;
-        ObjectGuid CombatGUID;
         float destX, destY, destZ;
     };
 
