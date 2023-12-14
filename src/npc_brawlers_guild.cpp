@@ -27,11 +27,15 @@ public:
 
     void OnBeforeConfigLoad(bool /*reload*/) override
     {
-        BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", 1);
-        BrawlersGuild_AnnounceModule = sConfigMgr->GetOption<bool>("BrawlersGuild.Announce", 1);
+        BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
+        BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
         BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
-        if (BrawlersGuild_CurrentSeason < 1 && BrawlersGuild_CurrentSeason > 4)
+
+        if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
+        {
             LOG_ERROR("error", "Config BrawlersGuild.CurrentSeason has invalid value [{}].", BrawlersGuild_CurrentSeason);
+            BrawlersGuild_Enabled = false;
+        }
     }
 };
 
@@ -172,7 +176,7 @@ public:
     // Announce Module
     void OnLogin(Player* player) override
     {
-        if (BrawlersGuild_Enabled && BrawlersGuild_AnnounceModule)
+        if (BrawlersGuild_AnnounceModule)
         {
             ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cffe67b09Brawlers Guild|r module.");
         }
@@ -413,13 +417,14 @@ public:
         uint8 rng = urand(0,5);
         cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
 
+        /*
         // Summon Traps
         Acore::Containers::RandomShuffle(goFrostTrap); // Randomize every arena
         for (uint8 i = 0; i < urand(1,2); ++i)
         {
             cr->SummonGameObject(GO_FROST_TRAP, goFrostTrap[i].GetPositionX(), goFrostTrap[i].GetPositionY(), goFrostTrap[i].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
         }
-        
+        */
     }
 
     // Defeat by timing out.
