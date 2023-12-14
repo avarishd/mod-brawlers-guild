@@ -31,6 +31,12 @@ public:
         BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
         BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
+        // Reminder, remove when more seasons are out.
+        if (BrawlersGuild_CurrentSeason != 1)
+        {
+            BrawlersGuild_CurrentSeason = 1;
+        }
+
         if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
         {
             LOG_ERROR("error", "Config BrawlersGuild.CurrentSeason has invalid value [{}].", BrawlersGuild_CurrentSeason);
@@ -156,10 +162,10 @@ const uint32 Rank[2][3][4] =
         // Rank 2 - Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
         {60006, 60007, 60008 /*60010*/, 60009},
 
-        // Rank 3 -
+        // Rank 3 - Mazhareen, Gorenog, Darkfeather, Ming Li
         {60011, 60012, 60013, 60014},
     },
-    // Season 2
+    // Season 2 NYI
     {
         {60011, 60012, 60013, 60014},
         {60011, 60012, 60013, 60014},
