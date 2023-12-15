@@ -468,6 +468,12 @@ public:
         }
     }
 
+    // We still lose if we evade the creature.
+    void SummonedCreatureEvade(Creature* summon) override
+    {
+        summon->DespawnOrUnsummon();
+    }
+
     // Victory by kill
     void SummonedCreatureDies(Creature* summon, Unit* /*killer*/)
     {

@@ -120,7 +120,7 @@ public:
             {
                 me->DisableSpline();
                 me->GetMotionMaster()->Clear();
-                me->GetMotionMaster()->MoveCharge(destX, destY, destZ + 1.0f, 18.0f);
+                me->GetMotionMaster()->MoveCharge(destX, destY, destZ + 1.0f, 15.0f);
                 break;
             }
         }
