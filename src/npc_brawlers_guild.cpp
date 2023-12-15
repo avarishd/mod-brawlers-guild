@@ -92,6 +92,7 @@ enum BrawlersGuild
 
     SPELL_QUEUE_COOLDOWN = 200001,
     SPELL_CHEAP_SHOT     = 30986,
+    SOUND_STEALTH        = 3325
 };
 
 enum ArenaObjects
@@ -150,6 +151,12 @@ const uint32 crowdCheer[4] = {8571, 8572, 8573, 8574};
 
 // The current player that is about to/already fighting in the arena.
 Player* CurrentPlayer = nullptr;
+
+// Teleport position when starting
+const Position playerSpawnPos = {2194.21f, -4751.58f, 55.13f, 3.83f};
+
+// Reset position
+const Position playerResetPos = {2208.17f, -4778.42f, 65.41f, 3.1f};
 
 // Arena mobs spawn position.
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
@@ -225,9 +232,9 @@ public:
                 float z = player->GetPositionZ();
 
                 // Center of the arena and ground elevation + jump Z.
-                if (player->IsInRange2d(2178.2f, -4764.79f, 0, 45.0f) && (z >= 55.0f && z <= 57.0f))
+                if (player->IsInRange2d(2178.2f, -4764.79f, 0, 30.0f) && (z >= 55.0f && z <= 57.0f))
                 {
-                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 50))
+                    if (Creature* t = player->FindNearestCreature(NPC_TARGET_SELECTOR, 30))
                     {
                         t->AI()->DoAction(ACTION_DEFEAT);
                     }
@@ -498,7 +505,7 @@ public:
         {
             me->Whisper("Victory!", LANG_UNIVERSAL, player, true);
             player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetIntDefault("BrawlersGuild.CoinsVictoryReward", 2));
-            player->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+            player->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
 
             QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
             if (result)
@@ -543,7 +550,7 @@ public:
     {
         if (CurrentPlayer)
         {
-            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+            CurrentPlayer->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
             std::string msg = type ? "You ran out of time!" : "You have failed.";
             me->Whisper(msg, LANG_UNIVERSAL, CurrentPlayer, true);
 
@@ -679,7 +686,7 @@ public:
 
                             if (CurrentPlayer)
                             {
-                                CurrentPlayer->NearTeleportTo(2199, -4745, 55.13, 4.1);
+                                CurrentPlayer->NearTeleportTo(playerSpawnPos.GetPositionX(), playerSpawnPos.GetPositionY(), playerSpawnPos.GetPositionZ(), playerSpawnPos.GetOrientation());
                                 events.ScheduleEvent(EVENT_START, 2s);
                                 events.ScheduleEvent(EVENT_NOT_FOUND, 5s);
                             }
@@ -692,7 +699,7 @@ public:
                     {
                         if (CurrentPlayer)
                         {
-                            CurrentPlayer->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+                            CurrentPlayer->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
                             queueList.remove(CurrentPlayer);
                             CurrentPlayer = nullptr;
                         }
@@ -789,8 +796,9 @@ public:
                 {
                     if (who->ToPlayer() && who->ToPlayer() != CurrentPlayer)
                     {
+                        me->PlayDirectSound(SOUND_STEALTH, who->ToPlayer());
                         me->AddAura(SPELL_CHEAP_SHOT, who);
-                        who->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+                        who->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
                     }
                     if (who->IsPet())
                     {
@@ -932,7 +940,7 @@ public:
         {
             if (player->ToPlayer())
             {
-                player->NearTeleportTo(2208.17f, -4778.42f, 65.41f, 3.1f);
+                player->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
             }
         }
 
