@@ -99,7 +99,7 @@ enum BrawlersGuild
 
 enum ArenaObjects
 {
-    GO_SARONITE_ROCK    = 196485,
+    GO_ARENA_PILLAR     = 900002,
     GO_FROST_TRAP       = 202106,
 
     NPC_FIREWORK_TONK   = 59992, // Firework on Victory. // Fire(cosmetic) 46679, 51195
@@ -114,7 +114,7 @@ enum Announcer
 };
 
 
-const Position goSaronite[6] =
+const Position goArenaPillar[6] =
 {
     {2192.73f, -4764.74f, 55.13f},
     {2174.02f, -4754.84f, 55.13f},
@@ -170,25 +170,18 @@ const uint32 Rank[2][8][4] =
     {
         // Rank 1 - Bob, Smiley, Dungeon Master Billey, Zerg
         {60002, 60003, 60004, 60005},
-
         // Rank 2 - Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
         {60006, 60007, 60008 /*60010*/, 60009},
-
         // Rank 3 - Mazhareen, Gorenog, Darkfeather, Ming Li
         {60011, 60012, 60013, 60014},
-
         // Rank 4 - Crash, Illaria the Illusionist (+pets), Circuitron, Terror
         {60015, 60016 /*60019*/, 60017, 60018},
-
-        // Rank 5 - 
-        {60020, 60021, 60022, 60023},
-
+        // Rank 5 - Shadowthorn, Leper Gnome Quin, Darkfang (+pets), Klunk
+        {60020, 60021, 60022 /*60024*/, 60023},
         // Rank 6 - 
-        {60019, 60020, 60021, 60021},
-
+        {60025, 60026, 60027, 60028},
         // Rank 7 - 
         {60019, 60020, 60021, 60021},
-
         // Rank 8 - 
         {60019, 60020, 60021, 60021},
     },
@@ -456,7 +449,8 @@ public:
         if (cr->GetEntry() != 60015) // Exceptions for: Crash
         {
             uint8 rng = urand(0,5);
-            cr->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
+            float rngO = frand(0.0f, 2 * M_PI);
+            cr->SummonGameObject(GO_ARENA_PILLAR, goArenaPillar[rng].GetPositionX(), goArenaPillar[rng].GetPositionY(), goArenaPillar[rng].GetPositionZ(), rngO, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
         }
 
         /*
@@ -743,7 +737,7 @@ public:
                     case EVENT_ARENA_UNKNOWN:
                     {
                         //uint8 rng = urand(0,5);
-                        //me->SummonGameObject(GO_SARONITE_ROCK, goSaronite[rng].GetPositionX(), goSaronite[rng].GetPositionY(), goSaronite[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0);
+                        //me->SummonGameObject(GO_ARENA_PILLAR, goArenaPillar[rng].GetPositionX(), goArenaPillar[rng].GetPositionY(), goArenaPillar[rng].GetPositionZ(), 0, 0, 0, 0, 0, 0);
                         break;
                     }
                     // Ran only once
