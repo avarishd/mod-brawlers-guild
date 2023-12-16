@@ -10,13 +10,15 @@
 #include "Chat.h"
 
 /* TODO
-Rares (at max rank and beyond)
 Correct tuning (requires testing with proper ilvl) (After all creatures for s1 are done (+ rares))
 More scripted fights (outside of SAI)
 Custom spells (both scripting and new spells in general)
 Custom area fights (e.g void zones closing in the arena)
+Rares (at max rank and beyond) / Challenge cards (unique bosses, must have in inventory and gets consumed on next creature spawn)
+Multifights (2 npcs that share hp/need to kill both?)
 Seasons
 Maybe VIP area at max rank?
+Betting (brawler's gold only)
 */
 
 bool BrawlersGuild_Enabled;
@@ -190,6 +192,7 @@ const uint32 Rank[2][8][4] =
         // Rank 8 - 
         {60019, 60020, 60021, 60021},
     },
+
     // Season 2 NYI
     {
         {60011, 60012, 60013, 60014},
