@@ -178,8 +178,8 @@ const uint32 Rank[2][8][4] =
         {60015, 60016 /*60019*/, 60017, 60018},
         // Rank 5 - Shadowthorn, Leper Gnome Quin, Darkfang (+pets), Klunk
         {60020, 60021, 60022 /*60024*/, 60023},
-        // Rank 6 - 
-        {60025, 60026, 60027, 60028},
+        // Rank 6 - Shortneck, Shadowfeather (+pets), Scaleslash, Carl
+        {60025, 60026 /*60029*/, 60027, 60028},
         // Rank 7 - 
         {60019, 60020, 60021, 60021},
         // Rank 8 - 
@@ -352,13 +352,14 @@ public:
                 Field *fields = result->Fetch();
                 std::string rank = fields[0].Get<std::string>();
                 std::string progress = fields[1].Get<std::string>();
+                uint32 reqprogress = sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10);
 
                 std::stringstream buf;
                 buf << "Current rank: " << rank;
 
                 AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, buf.str(), GOSSIP_SENDER_MAIN, GOODBYE);
                 buf.str("");
-                buf << "Progress towards next rank: " << progress << " / 10";
+                buf << "Progress towards next rank: " << progress << " / " << reqprogress;
                 AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, buf.str(), GOSSIP_SENDER_MAIN, GOODBYE);
                 SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
             }
