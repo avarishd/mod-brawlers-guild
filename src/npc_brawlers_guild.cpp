@@ -180,8 +180,8 @@ const uint32 Rank[2][8][4] =
         {60020, 60021, 60022 /*60024*/, 60023},
         // Rank 6 - Shortneck, Shadowfeather (+pets), Scaleslash, Carl
         {60025, 60026 /*60029*/, 60027, 60028},
-        // Rank 7 - 
-        {60019, 60020, 60021, 60021},
+        // Rank 7 - Springcoil (+ Gadgetclank + pets), Boltstrike (+pets), Tyson Sanders (+pets), T800 Multi-Mode Robot
+        {60030 /*60034, 30035*/, 60031 /*60036*/, 60032 /*60037*/, 60033},
         // Rank 8 - 
         {60019, 60020, 60021, 60021},
     },
@@ -446,6 +446,8 @@ public:
     {
         summons.Summon(cr);
 
+        /* === [Core] Disabled due to creatures not pathing around objects. (Still blocks LoS though) ===
+
         // Arena Objects, automatically cleaned with creature despawn.
         if (cr->GetEntry() != 60015) // Exceptions for: Crash
         {
@@ -453,6 +455,7 @@ public:
             float rngO = frand(0.0f, 2 * M_PI);
             cr->SummonGameObject(GO_ARENA_PILLAR, goArenaPillar[rng].GetPositionX(), goArenaPillar[rng].GetPositionY(), goArenaPillar[rng].GetPositionZ(), rngO, 0, 0, 0, 0, 0, false, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN);
         }
+        */
 
         /*
         // Summon Traps
