@@ -14,7 +14,6 @@ Correct tuning (requires testing with proper ilvl) (After all creatures for s1 a
 More scripted fights (outside of SAI)
 Custom spells (both scripting and new spells in general)
 Custom area fights (e.g void zones closing in the arena)
-Rares (at max rank and beyond) / Challenge cards (unique bosses, must have in inventory and gets consumed on next creature spawn)
 Multifights (2 npcs that share hp/need to kill both?)
 Seasons
 Maybe VIP area at max rank?
@@ -163,7 +162,7 @@ const Position playerResetPos = {2208.17f, -4778.42f, 65.41f, 3.1f};
 // Arena mobs spawn position.
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
-// [Season][Rank][Creatures]
+// [Season][Rank][Creature]
 const uint32 Rank[2][8][4] =
 {
     // Season 1
@@ -182,8 +181,9 @@ const uint32 Rank[2][8][4] =
         {60025, 60026 /*60029*/, 60027, 60028},
         // Rank 7 - Springcoil (+ Gadgetclank + pets), Boltstrike (+pets), Tyson Sanders (+pets), T800 Multi-Mode Robot
         {60030 /*60034, 30035*/, 60031 /*60036*/, 60032 /*60037*/, 60033},
-        // Rank 8 - 
-        {60019, 60020, 60021, 60021},
+        // Rank 8 - Lord Nelly (+pets)
+        //{60038 /*60042*/, 60039, 60040, 60041},
+        {60038 /*60042*/, 60038, 60038, 60038},
     },
 
     // Season 2 NYI
@@ -198,6 +198,18 @@ const uint32 Rank[2][8][4] =
         {60011, 60012, 60013, 60014},
     }
 };
+
+/*
+// [Season][Creature] - Class fights, buffed each 5 ranks
+const uint32 RankRare[2][10]
+{
+    // Season 1
+    {},
+    
+    // Season 2
+    {},
+};
+*/
 
 class BrawlersGuild_Announce : public PlayerScript
 {

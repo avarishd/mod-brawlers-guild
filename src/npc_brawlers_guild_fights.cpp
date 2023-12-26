@@ -296,8 +296,33 @@ public:
 
 };
 
+// 60042 - Living Flame
+class living_flame : public CreatureScript
+{
+public:
+    living_flame() : CreatureScript("living_flame") { }
+
+    struct living_flameAI : public ScriptedAI
+    {
+        living_flameAI(Creature* creature) : ScriptedAI(creature)
+        {
+            float x, y, z;
+            me->GetClosePoint(x, y, z, me->GetObjectSize() / 3, 17);
+            me->GetMotionMaster()->MovePoint(0, x, y, z);
+        }
+
+    void EnterEvadeMode(EvadeReason /*why*/) override {}
+
+    };
+    CreatureAI* GetAI(Creature* creature) const override
+    {
+        return new living_flameAI (creature);
+    }
+};
+
 void AddBrawlersGuildScriptsFights()
 {
     new bguild_crash();
     new bguild_darkfang();
+    new living_flame();
 }
