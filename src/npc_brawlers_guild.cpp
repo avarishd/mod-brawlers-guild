@@ -181,9 +181,8 @@ const uint32 Rank[2][8][4] =
         {60025, 60026 /*60029*/, 60027, 60028},
         // Rank 7 - Springcoil (+ Gadgetclank + pets), Boltstrike (+pets), Tyson Sanders (+pets), T800 Multi-Mode Robot
         {60030 /*60034, 30035*/, 60031 /*60036*/, 60032 /*60037*/, 60033},
-        // Rank 8 - Lord Nelly (+pets)
-        //{60038 /*60042*/, 60039, 60040, 60041},
-        {60038 /*60042*/, 60038, 60038, 60038},
+        // Rank 8 - Lord Nelly (+pets), Karsh, 
+        {60038 /*60042*/, 60039, 60040, 60041},
     },
 
     // Season 2 NYI
@@ -454,6 +453,7 @@ public:
         }
 
 
+    // Maybe add custom announcement per summon, maybe.
     void JustSummoned(Creature* cr) override
     {
         summons.Summon(cr);

@@ -395,9 +395,12 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (60038, 0, 0, 1, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Set Reactstate Passive'),
 (60038, 0, 1, 2, 61, 0, 100, 0, 0, 0, 0, 0, 0, 0, 224, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Stop Attack'),
 (60038, 0, 2, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 0, 69, 0, 0, 1, 0, 0, 0, 8, 0, 0, 0, 0, 2178.2, -4764.8, 55.13, 0, 'Lord Nelly - In Combat - Move To Position'),
-(60038, 0, 3, 0, 0, 0, 100, 0, 2000, 2000, 10000, 10000, 0, 0, 80, 6003800, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Run Script'),
-(60038, 0, 4, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 204, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - On Just Died - Despawn Summons'),
-(60038, 0, 5, 0, 7, 0, 100, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 204, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - On Evade - Despawn Summons');
+(60038, 0, 3, 4, 0, 0, 100, 0, 2500, 2500, 10000, 10000, 0, 0, 80, 6003800, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Run Script'),
+(60038, 0, 4, 0, 61, 0, 100, 1, 0, 0, 0, 0, 0, 0, 66, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Set Orientation Random'),
+(60038, 0, 5, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 204, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - On Just Died - Despawn Summons'),
+(60038, 0, 6, 0, 7, 0, 100, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 204, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - On Evade - Despawn Summons'),
+(60038, 0, 7, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 22, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - In Combat - Set Event Phase 1'),
+(60038, 0, 8, 0, 1, 1, 100, 0, 2000, 2000, 2000, 2000, 0, 0, 41, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - Out of Combat - Despawn Instant (Phase 1)');
 DELETE FROM `smart_scripts` WHERE (`source_type` = 9 AND `entryorguid` = 6003800);
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
 (6003800, 9, 0, 0, 0, 0, 100, 0, 500, 500, 0, 0, 0, 0, 12, 60042, 3, 10000, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Lord Nelly - Actionlist - Summon Creature \'Fire Spread Target\''),
@@ -428,3 +431,12 @@ INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entr
 DELETE FROM `creature_template_addon` WHERE (`entry` = 60042);
 INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `visibilityDistanceType`, `auras`) VALUES
 (60042, 0, 0, 0, 0, 0, 0, '64561');
+
+DELETE FROM `creature_template` WHERE (`entry` = 60039);
+INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `scale`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `trainer_type`, `trainer_spell`, `trainer_class`, `trainer_race`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
+(60039, 0, 0, 0, 0, 0, 7976, 0, 0, 0, 'Karsh', 'S1 | Rank 8', '', 0, 81, 81, 0, 14, 0, 1.1, 1.2, 1, 1, 10, 0.3, 1, 0, 8, 2000, 2000, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 'SmartAI', 0, 1, 222, 10, 10, 1, 0, 0, 1, 0, 0, 1074790400, '', 0);
+DELETE FROM `smart_scripts` WHERE (`source_type` = 0 AND `entryorguid` = 60039);
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param6`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(60039, 0, 0, 0, 23, 0, 100, 0, 62055, 1, 4000, 4000, 0, 0, 11, 69585, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Karsh - On Aura \'Brittle Skin\' - Cast \'Hellfire Effect\''),
+(60039, 0, 1, 0, 0, 0, 100, 0, 6000, 8000, 6000, 8000, 0, 0, 11, 40505, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 'Karsh - In Combat - Cast \'Cleave\''),
+(60039, 0, 2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 50, 900003, 120000, 0, 0, 0, 0, 8, 0, 0, 0, 0, 2178.2, -4764.79, 55.13, 0, 'Karsh - In Combat - Summon Gameobject \'Heat Pillar\'');
