@@ -82,6 +82,8 @@ BrawlersGuild.RankLose = 2
 #        Description: Maximum allowed duration of every fight
 #        Default:     Default  = 120 (seconds)
 #
+#    If changed some SAI scripts also need to be altered (summon durations mostly)
+#
 
 BrawlersGuild.FightDuration = 120
 
