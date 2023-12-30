@@ -33,19 +33,15 @@ public:
     {
         BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
-        BrawlersGuild_CurrentSeason = sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
+        BrawlersGuild_CurrentSeason = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
-        // Reminder, remove when more seasons are out.
-        if (BrawlersGuild_CurrentSeason != 1)
-        {
-            BrawlersGuild_CurrentSeason = 1;
-        }
-
+        /*
         if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
         {
             LOG_ERROR("error", "Config BrawlersGuild.CurrentSeason has invalid value [{}].", BrawlersGuild_CurrentSeason);
             BrawlersGuild_Enabled = false;
         }
+        */
     }
 };
 
@@ -181,8 +177,8 @@ const uint32 Rank[2][8][4] =
         {60025, 60026 /*60029*/, 60027, 60028},
         // Rank 7 - Springcoil (+ Gadgetclank + pets), Boltstrike (+pets), Tyson Sanders (+pets), T800 Multi-Mode Robot
         {60030 /*60034, 30035*/, 60031 /*60036*/, 60032 /*60037*/, 60033},
-        // Rank 8 - Lord Nelly (+pets), Karsh, 
-        {60038 /*60042*/, 60039, 60040, 60041},
+        // Rank 8 - Lord Nelly (+pets), Karsh, Rom'ogg Bonecrusher (+pets), Deathstealer (+pets)
+        {60038 /*60042*/, 60039, 60040 /*60043*/, 60041 /*60044*/},
     },
 
     // Season 2 NYI
