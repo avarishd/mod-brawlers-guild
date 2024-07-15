@@ -47,8 +47,8 @@ public:
 
 enum Crowd
 {
-    NPC_CROWD_ARENA_SPECTATOR   = 59994,
-    NPC_CROWD_ARENA_SPECTATOR_2 = 59993,
+    NPC_CROWD_ARENA_SPECTATOR   = 200004,
+    NPC_CROWD_ARENA_SPECTATOR_2 = 200005,
 };
 
 enum BrawlersGuild 
@@ -57,9 +57,9 @@ enum BrawlersGuild
     QUEST_BRAWLERS_GUILD    = 90000,
     ITEM_BRAWLERS_GOLD      = 43003,
 
-    NPC_RAT                 = 59999,
-    NPC_BRAWLERS_GUILD      = 60000,
-    NPC_TARGET_SELECTOR     = 60001,
+    NPC_RAT                 = 200002,
+    NPC_BRAWLERS_GUILD      = 200000,
+    NPC_TARGET_SELECTOR     = 200022,
 
     // Current Player
     ACTION_FIND_PLAYER = 1,
@@ -69,16 +69,22 @@ enum BrawlersGuild
     ACTION_DEFEAT     = 7,
 
     // Other players
-    ACTION_FIND_OTHER_PLAYERS = 5,
-    EVENT_FIND_OTHER_PLAYERS  = 6,
+    ACTION_FIND_OTHER_PLAYERS   = 5,
+    EVENT_FIND_OTHER_PLAYERS    = 6,
 
     // Arena Events
-    EVENT_ARENA_UNKNOWN    = 20,
+    EVENT_ARENA_UNKNOWN         = 20,
 
     // Crowd Events
-    EVENT_LOAD_ARENA_OBJECTS   = 21,
-    EVENT_CROWD_VICTORY = 22,
-    EVENT_CROWD_DEFEAT  = 23,
+    EVENT_LOAD_ARENA_OBJECTS    = 21,
+    EVENT_CROWD_VICTORY         = 22,
+    EVENT_CROWD_DEFEAT          = 23,
+
+    // Gambler
+    ACTION_OPEN_BETTING         = 24,
+    ACTION_CLOSE_BETTING        = 25,
+    EVENT_GAMBLER_CLOSE_BETTING = 26,
+
 
     // Helix
     MY_RANK         = 10,
@@ -94,11 +100,12 @@ enum BrawlersGuild
 
 enum ArenaObjects
 {
-    GO_ARENA_PILLAR     = 900002,
-    GO_FROST_TRAP       = 202106,
+    //GO_ARENA_PILLAR     = 900002,
+    //GO_FROST_TRAP       = 202106,
 
-    NPC_FIREWORK_TONK   = 59992, // Firework on Victory. // Fire(cosmetic) 46679, 51195
-    NPC_ARENA_ANNOUNCER = 59991
+    NPC_FIREWORK_TONK   = 200006, // Firework on Victory. // Fire(cosmetic) 46679, 51195
+    NPC_ARENA_ANNOUNCER = 200007,
+    NPC_ARENA_GAMBLER   = 200008
 };
 
 enum Announcer
@@ -618,6 +625,11 @@ public:
                 ann->AI()->DoAction(type ? ACTION_ANNOUNCE_DEFEAT_TIME : ACTION_ANNOUNCE_DEFEAT_DEATH);
             }
 
+            if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
+            {
+                gam->AI()->DoAction(ACTION_CLOSE_BETTING);
+            }
+
             CrowdReaction();
             queueList.remove(CurrentPlayer);
             summons.DespawnAll();
@@ -756,6 +768,11 @@ public:
 
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
+
+                                if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
+                                {
+                                    gam->AI()->DoAction(ACTION_OPEN_BETTING);
+                                }
                             }
                             else
                             {
@@ -784,6 +801,10 @@ public:
                         {
                             announcer = c->GetGUID();
                         }
+                        if (Creature* c = me->FindNearestCreature(NPC_ARENA_GAMBLER, 60))
+                        {
+                            gambler = c->GetGUID();
+                        }
                         break;
                     }
                     case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
@@ -799,6 +820,7 @@ public:
         EventMap events;
         SummonList summons;
         ObjectGuid announcer;
+        ObjetcGuid gambler;
     };
 
     CreatureAI* GetAI(Creature* creature) const override
@@ -1234,6 +1256,82 @@ public:
     }
 };
 
+class npc_brawlers_gambler : public CreatureScript
+{
+public:
+    npc_brawlers_gambler() : CreatureScript("npc_brawlers_gambler") 
+    {
+        bool BettingActive = false;
+    }
+
+    bool OnGossipHello(Player* player, Creature* creature) override
+    {
+        if (sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true))
+        {
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t \n\n\n\n", GOSSIP_SENDER_MAIN, 0);
+            if (!player->GetQuestStatus(QUEST_BRAWLERS_GUILD) == QUEST_STATUS_REWARDED)
+                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "You must be new here, I can't help you yet.", GOSSIP_SENDER_MAIN, GOODBYE);
+            else if (!player->HasItemCount(ITEM_BRAWLERS_GOLD))
+                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "Stop wasting me time...", GOSSIP_SENDER_MAIN, GOODBYE);
+            else if (BettingActive && CurrentPlayer)
+                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "\n == Bet on {} or against! == \n" CurrentPlayer->ToPlayer()->GetName().c_str(), GOSSIP_SENDER_MAIN, 0);
+        }
+        else
+            AddGossipItemFor(player, GOSSIP_ICON_TABARD, "I'm currently out of business.", GOSSIP_SENDER_MAIN, GOODBYE);
+
+        SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, Creature*  creature, uint32 /*sender*/, uint32 action) override
+    {
+        ClearGossipMenuFor(player);
+
+        switch (action)
+        {
+            if (action == GOODBYE)
+            {
+                CloseGossipMenuFor(player);
+            }
+        }
+
+        return true;
+    }
+
+    void DoAction(int32 action)
+    {
+        if (action == ACTION_OPEN_BETTING)
+        {
+            BettingActive = true;
+            events.ScheduleEvent(EVENT_GAMBLER_CLOSE_BETTING, 10s);
+        }
+        if (action == ACTION_CLOSE_BETTING)
+        {
+            BettingActive = false;
+        }
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        events.Update(diff);
+        {
+            {
+                switch (events.ExecuteEvent())
+                {
+                    case EVENT_GAMBLER_CLOSE_BETTING:
+                    {
+                        BettingActive = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private:
+        EventMap events;
+        bool BettingActive;
+};
 
 void AddBrawlersGuildScripts()
 {
@@ -1245,4 +1343,5 @@ void AddBrawlersGuildScripts()
     new npc_arena_announcer();
     new npc_anti_stuck();
     new npc_brawlers_vendor();
+    new npc_brawlers_gambler();
 }
