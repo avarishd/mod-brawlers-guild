@@ -87,30 +87,6 @@ BrawlersGuild.RankLose = 2
 
 BrawlersGuild.FightDuration = 120
 
-#
-#    BrawlersGuild.DampeningStart
-#        Description: Initial dampening (for the player) upon start of a fight.
-#        Default:     Default  = 50 (percentage)
-#
-
-BrawlersGuild.DampeningStart = 50
-
-#
-#    BrawlersGuild.DampeningTimer
-#        Description: How often do we increase dampening.
-#        Default:     Default  = 5 (seconds)
-#
-
-BrawlersGuild.DampeningTimer = 5
-
-#
-#    BrawlersGuild.DampeningPercent
-#        Description: How much do we increase the dampening per DampeningTimer.
-#        Default:     Default  = 1
-#
-
-BrawlersGuild.DampeningPercent = 1
-
 ############## Challenge Cards & Rare settings (NYI) ##############
 
 #

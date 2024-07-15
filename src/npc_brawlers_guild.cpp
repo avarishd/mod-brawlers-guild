@@ -159,28 +159,29 @@ const Position playerResetPos = {2208.17f, -4778.42f, 65.41f, 3.1f};
 const Position spawnPos = {2172, -4786, 55.13f, 1.15f};
 
 // [Season][Rank][Creature]
-const uint32 Rank[2][8][4] =
+const uint32 Rank[1][8][4] =
 {
     // Season 1
     {
         // Rank 1 - Bob, Smiley, Dungeon Master Billey, Zerg
-        {60002, 60003, 60004, 60005},
+        {200100, 200101, 200102, 200103},
         // Rank 2 - Electrified Golem, Bomb Bot, Projection Unit (+pets), King Dash
-        {60006, 60007, 60008 /*60010*/, 60009},
+        {200104, 200105, 200106 /*200107*/, 200108},
         // Rank 3 - Mazhareen, Gorenog, Darkfeather, Ming Li
-        {60011, 60012, 60013, 60014},
+        {200109, 200110, 200111, 200112},
         // Rank 4 - Crash, Illaria the Illusionist (+pets), Circuitron, Terror
-        {60015, 60016 /*60019*/, 60017, 60018},
+        {200113, 200114 /*200115*/, 200116, 200117},
         // Rank 5 - Shadowthorn, Leper Gnome Quin, Darkfang (+pets), Klunk
-        {60020, 60021, 60022 /*60024*/, 60023},
+        {200118, 200119, 200120 /*200121*/, 200122},
         // Rank 6 - Shortneck, Shadowfeather (+pets), Scaleslash, Carl
-        {60025, 60026 /*60029*/, 60027, 60028},
+        {200123, 200124 /*200125*/, 200126, 200127},
         // Rank 7 - Springcoil (+ Gadgetclank + pets), Boltstrike (+pets), Tyson Sanders (+pets), T800 Multi-Mode Robot
-        {60030 /*60034, 30035*/, 60031 /*60036*/, 60032 /*60037*/, 60033},
+        {200128 /*200129, 200130*/, 200131 /*200132*/, 200133 /*200134*/, 200135},
         // Rank 8 - Lord Nelly (+pets), Karsh, Rom'ogg Bonecrusher (+pets), Deathstealer (+pets)
-        {60038 /*60042*/, 60039, 60040 /*60043*/, 60041 /*60044*/},
+        {200136 /*200137*/, 200138, 200139 /*200140*/, 200141 /*200142*/},
     },
 
+    /*
     // Season 2 NYI
     {
         {60011, 60012, 60013, 60014},
@@ -192,6 +193,7 @@ const uint32 Rank[2][8][4] =
         {60011, 60012, 60013, 60014},
         {60011, 60012, 60013, 60014},
     }
+    */
 };
 
 /*
@@ -206,6 +208,7 @@ const uint32 RankRare[2][10]
 };
 */
 
+// https://github.com/azerothcore/azerothcore-wotlk/blob/master/src/server/game/Scripting/ScriptMgr.h
 class BrawlersGuild_Announce : public PlayerScript
 {
 public:
@@ -218,6 +221,25 @@ public:
         if (BrawlersGuild_AnnounceModule)
         {
             ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cffe67b09Brawlers Guild|r module.");
+        }
+    }
+
+    void OnPlayerQueueRandomDungeon(Player* player, uint32 & /*rDungeonId*/)
+    void OnPlayerAddToBattleground(Player* player, Battleground* /*bg*/)
+    void OnPlayerJoinBG(Player* player)
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* player : queueList)
+            {
+                if (player)
+                {
+                    queueList.remove(player);
+                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
+                    break;
+                }
+            }
         }
     }
 
@@ -871,7 +893,6 @@ const std::string annDeath[10] =
     {"And... crash! This player's dreams just shattered faster than a screen protector."},
     {"Another one bites the dust! Can someone get these players a map? They seem lost."}
 };
-
 
 class npc_arena_announcer : public CreatureScript
 {
