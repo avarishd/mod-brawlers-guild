@@ -2,6 +2,8 @@
 #include <string.h>
 #include "Configuration/Config.h"
 #include "ObjectMgr.h"
+#include "CreatureScript.h"
+#include "PassiveAI.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
 #include "ScriptedCreature.h"
@@ -22,6 +24,7 @@ Betting (brawler's gold only)
 
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
+bool BrawlersGuild_Gambler;
 uint8 BrawlersGuild_CurrentSeason;
 
 class BrawlersGuild_conf : public WorldScript
@@ -31,9 +34,10 @@ public:
 
     void OnBeforeConfigLoad(bool /*reload*/) override
     {
-        BrawlersGuild_Enabled = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
+        BrawlersGuild_Enabled        = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
-        BrawlersGuild_CurrentSeason = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
+        BrawlersGuild_Gambler        = sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true);
+        BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
         /*
         if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
@@ -231,9 +235,59 @@ public:
         }
     }
 
-    void OnPlayerQueueRandomDungeon(Player* player, uint32 & /*rDungeonId*/)
-    void OnPlayerAddToBattleground(Player* player, Battleground* /*bg*/)
-    void OnPlayerJoinBG(Player* player)
+    /* Ain't compiling, idk why
+    // How can I make all 3 in one block
+    //void OnPlayerQueueRandomDungeon(Player* player, uint32 & rDungeonId) override
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* player : queueList)
+            {
+                if (player)
+                {
+                    queueList.remove(player);
+                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
+                    break;
+                }
+            }
+        }
+    }
+
+    //void OnPlayerAddToBattleground(Player* player, Battleground* bg) override
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* player : queueList)
+            {
+                if (player)
+                {
+                    queueList.remove(player);
+                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
+                    break;
+                }
+            }
+        }
+    }
+    */
+
+    void OnPlayerLogout(Player* player)
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* player : queueList)
+            {
+                if (player)
+                {
+                    queueList.remove(player);
+                    break;
+                }
+            }
+        }
+    }
+
+    void OnPlayerJoinBG(Player* player) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
@@ -773,6 +827,7 @@ public:
                                 {
                                     gam->AI()->DoAction(ACTION_OPEN_BETTING);
                                 }
+                                events.ScheduleEvent(EVENT_GAMBLER_CLOSE_BETTING, 10s);
                             }
                             else
                             {
@@ -807,6 +862,14 @@ public:
                         }
                         break;
                     }
+                    case EVENT_GAMBLER_CLOSE_BETTING:
+                    {
+                        if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
+                        {
+                            gam->AI()->DoAction(ACTION_CLOSE_BETTING);
+                        }
+                        break;
+                    }
                     case EVENT_CROWD_DEFEAT: // do it as a function or in victory/defeat
                     {
                         break;
@@ -820,7 +883,7 @@ public:
         EventMap events;
         SummonList summons;
         ObjectGuid announcer;
-        ObjetcGuid gambler;
+        ObjectGuid gambler;
     };
 
     CreatureAI* GetAI(Creature* creature) const override
@@ -1266,15 +1329,15 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
-        if (sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true))
+        if (BrawlersGuild_Gambler)
         {
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t \n\n\n\n", GOSSIP_SENDER_MAIN, 0);
-            if (!player->GetQuestStatus(QUEST_BRAWLERS_GUILD) == QUEST_STATUS_REWARDED)
-                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "You must be new here, I can't help you yet.", GOSSIP_SENDER_MAIN, GOODBYE);
-            else if (!player->HasItemCount(ITEM_BRAWLERS_GOLD))
-                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "Stop wasting me time...", GOSSIP_SENDER_MAIN, GOODBYE);
-            else if (BettingActive && CurrentPlayer)
-                AddGossipItemFor(player, GOSSIP_ICON_TABARD, "\n == Bet on {} or against! == \n" CurrentPlayer->ToPlayer()->GetName().c_str(), GOSSIP_SENDER_MAIN, 0);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, 0);
+            if (BettingActive && CurrentPlayer)
+            {
+                std::stringstream name;
+                name << "\n == Bet on " << CurrentPlayer->ToPlayer()->GetName().c_str() << " or against! == \n";
+                AddGossipItemFor(player, GOSSIP_ICON_TABARD, name.str(), GOSSIP_SENDER_MAIN, 0);
+            }
         }
         else
             AddGossipItemFor(player, GOSSIP_ICON_TABARD, "I'm currently out of business.", GOSSIP_SENDER_MAIN, GOODBYE);
@@ -1289,9 +1352,10 @@ public:
 
         switch (action)
         {
-            if (action == GOODBYE)
+            case GOODBYE:
             {
                 CloseGossipMenuFor(player);
+                break;
             }
         }
 
@@ -1303,7 +1367,6 @@ public:
         if (action == ACTION_OPEN_BETTING)
         {
             BettingActive = true;
-            events.ScheduleEvent(EVENT_GAMBLER_CLOSE_BETTING, 10s);
         }
         if (action == ACTION_CLOSE_BETTING)
         {
@@ -1311,25 +1374,7 @@ public:
         }
     }
 
-    void UpdateAI(uint32 diff) override
-    {
-        events.Update(diff);
-        {
-            {
-                switch (events.ExecuteEvent())
-                {
-                    case EVENT_GAMBLER_CLOSE_BETTING:
-                    {
-                        BettingActive = false;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     private:
-        EventMap events;
         bool BettingActive;
 };
 

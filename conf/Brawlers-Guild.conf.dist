@@ -52,7 +52,7 @@ BrawlersGuild.CoinsVictoryReward = 2
 #
 #    BrawlersGuild.Gambler
 #        Description: Enable or Disable the coin gambling. (Chip)
-#        Default:     BrawlersGuild.Gambler   = 1
+#        Default:     Default  = 1
 #
 
 BrawlersGuild.Gambler = 1
