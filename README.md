@@ -25,14 +25,10 @@ Adds [Mist of Pandaria's Brawler's Guild](https://wowpedia.fandom.com/wiki/Brawl
 The Brawler's Guild is an organization that arranges one on one battles between willing combatants, captured monsters, and other participants in gladiatorial combat. Being a neutral organization, only members of the Horde are allowed to enter, rising through the Brawler's Guild ranks with more wins. Prizes are awarded at higher ranks. The fights are all solo PvE matches in which the players must adapt and use different strategies depending on which opponent they are currently facing, making the Brawler's Guild one of the most challenging PvE activities a player can attempt on their own.
 
 > [!NOTE]  
-> Features:
-
-> Betting on win/lose for current fight
-
-> Multiple ranks to progress through.
-
-> Multiple Seasons (4 in total, 1 for each raid tier) *NYI*
-
+> Features:\
+> Betting on win/lose for current fight\
+> Multiple ranks to progress through.\
+> Multiple Seasons (4 in total, 1 for each raid tier) *NYI*\
 ### Season tuning information
 
 - Season 1 - Tier 7 &nbsp; (213~)
