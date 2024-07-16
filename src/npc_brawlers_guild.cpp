@@ -14,11 +14,8 @@
 /* TODO
 Correct tuning (requires testing with proper ilvl) (After all creatures for s1 are done (+ rares))
 More scripted fights (outside of SAI)
-Custom spells (both scripting and new spells in general)
 Custom area fights (e.g void zones closing in the arena)
-Multifights (2 npcs that share hp/need to kill both?)
 Seasons
-Maybe VIP area at max rank?
 */
 
 bool BrawlersGuild_Enabled;
@@ -119,12 +116,6 @@ enum Announcer
     ACTION_ANNOUNCE_VICTORY      = 1,
     ACTION_ANNOUNCE_DEFEAT_TIME  = 2,
     ACTION_ANNOUNCE_DEFEAT_DEATH = 3
-};
-
-enum VIPArea
-{
-    // cords : -1134.90, -4760.32, 6.02, 2.455
-    // GO ID 143230
 };
 
 const Position goArenaPillar[6] =
@@ -1444,10 +1435,9 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature*  creature, uint32 /*sender*/, uint32 action) override
+    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action) override
     {
         ClearGossipMenuFor(player);
-
         switch (action)
         {
             case BET_FOR:
@@ -1485,6 +1475,75 @@ public:
     }
 };
 
+enum VIPArea
+{
+    // Gossip
+    VIP_TELE_ARENA  = 1,
+    VIP_TELE_ISLAND = 2,
+
+    // AreaIDs
+    VIP_ARENA_ID    = 1637,
+    VIP_ISLAND_ID   = 2317
+};
+
+const Position VipArena  = {2203.38f, -4795.52f, 65.617493f, 1.73f};
+const Position VipIsland = {-11342.36f, -4759.87f, 6.637663f, 2.38f};
+
+class go_brawlers_vip : public GameObjectScript
+{
+public:
+    go_brawlers_vip() : GameObjectScript("go_brawlers_vip") {}
+
+    bool OnGossipHello(Player* player, GameObject* go) override
+    {
+        uint32 areaId = player->GetAreaId();
+        
+        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "This teleporter is only available to those that have reached the highest rank.", GOSSIP_SENDER_MAIN, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
+
+        QueryResult result = CharacterDatabase.Query("SELECT `Rank` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
+        if (result)
+        {
+            Field *fields = result->Fetch();
+            uint32 rank = fields[0].Get<uint32>();
+            if (rank >= 8 || player->IsGameMaster())
+            {
+                if (areaId == VIP_ISLAND_ID)
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\achievement_arena_2v2_7:64|t To the Arena!", GOSSIP_SENDER_MAIN, VIP_TELE_ARENA);
+                if (areaId == VIP_ARENA_ID)
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_bijou_gold:64|t To the VIP Area!", GOSSIP_SENDER_MAIN, VIP_TELE_ISLAND);
+            }
+        }
+
+        SendGossipMenuFor(player, GOSSIP_HELLO, go->GetGUID());
+        return true;
+    }
+
+    bool OnGossipSelect(Player* player, GameObject* go, uint32 /*sender*/, uint32 action) override
+    {
+        ClearGossipMenuFor(player);
+        switch(action)
+        {
+            case VIP_TELE_ARENA:
+            {
+                player->TeleportTo(1, VipArena.GetPositionX(), VipArena.GetPositionY(), VipArena.GetPositionZ(), VipArena.GetOrientation());
+                CloseGossipMenuFor(player);
+                break;
+            }
+            case VIP_TELE_ISLAND:
+            {
+                player->TeleportTo(1, VipIsland.GetPositionX(), VipIsland.GetPositionY(), VipIsland.GetPositionZ(), VipIsland.GetOrientation());
+                CloseGossipMenuFor(player);
+                break;
+            }
+            default:
+                break;
+        }
+
+        return true;
+    }
+};
+
 void AddBrawlersGuildScripts()
 {
     new BrawlersGuild_conf();
@@ -1496,4 +1555,5 @@ void AddBrawlersGuildScripts()
     new npc_anti_stuck();
     new npc_brawlers_vendor();
     new npc_brawlers_gambler();
+    new go_brawlers_vip();
 }

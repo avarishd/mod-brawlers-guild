@@ -57,8 +57,10 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 -- VIP Teleporter
 DELETE FROM `gameobject_template` WHERE (`entry` = @GoID+3);
 INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`, `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`, `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`, `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `AIName`, `ScriptName`, `VerifiedBuild`) VALUES
-(@GoID+3, 0, 2047, 'VIP Teleporter', '', '', '', 0.75, 0, 0, 1500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_brawlers_vip', 0);
+(@GoID+3, 10, 2047, 'VIP Teleporter', '', '', '', 0.75, 0, 0, 0, 0, 0, 0, 1500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_brawlers_vip', 0);
 
 DELETE FROM `gameobject` WHERE (`id` = @GoID+3);
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `ScriptName`, `VerifiedBuild`, `Comment`) VALUES
-(GoGUID+4, @GoID+3, 1, 0, 0, 1, 1, 2203.38, -4795.52, 64.9979, 2.63108, 0, 0, -0.967599, -0.252491, 0, 0, 1, '', NULL, NULL);
+(@GoGUID+4, @GoID+3, 1, 0, 0, 1, 1, 2203.38, -4795.52, 64.9979, 2.63108, 0, 0, -0.967599, -0.252491, 0, 0, 1, '', NULL, "Arena"),
+(@GoGUID+5, @GoID+3, 1, 0, 0, 1, 1, -11342.1, -4760.08, 6.0295, 3.20599, 0, 0, -0.999482, 0.0321921, 0, 0, 1, '', NULL, "South Seas");
+
