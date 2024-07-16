@@ -688,6 +688,7 @@ public:
                 ann->AI()->DoAction(type ? ACTION_ANNOUNCE_DEFEAT_TIME : ACTION_ANNOUNCE_DEFEAT_DEATH);
             }
 
+            // Gambler - Open Betting (Just in case)
             if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
             {
                 gam->RemoveAura(SPELL_MARKER);
@@ -832,8 +833,11 @@ public:
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
 
+                                // Gambler - Open Betting
                                 if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
                                 {
+                                    betFor.clear();
+                                    betAgainst.clear();
                                     me->AddAura(SPELL_MARKER, gam);
                                 }
                                 events.ScheduleEvent(EVENT_GAMBLER_CLOSE_BETTING, 10s);
@@ -1374,7 +1378,7 @@ public:
                 }
             }
             else
-                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1,"You've already have a bet on this fight.", GOSSIP_SENDER_MAIN, GOODBYE);
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1,"You've already placed a bet on this fight.", GOSSIP_SENDER_MAIN, GOODBYE);
         }
         else
         {
