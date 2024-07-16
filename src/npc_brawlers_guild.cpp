@@ -18,8 +18,7 @@ Custom spells (both scripting and new spells in general)
 Custom area fights (e.g void zones closing in the arena)
 Multifights (2 npcs that share hp/need to kill both?)
 Seasons
-Maybe VIP area at max rank?
-Betting (brawler's gold only)
+Maybe VIP area at max rank? GO ID 143230
 */
 
 bool BrawlersGuild_Enabled;
@@ -244,15 +243,14 @@ public:
         }
     }
 
-    /* Ain't compiling, idk why
-    // How can I make all 3 in one block
-    //void OnPlayerQueueRandomDungeon(Player* player, uint32 & rDungeonId) override
+    // Remove players that join group activities or logout
+    void OnQueueRandomDungeon(Player* player, uint32 & rDungeonId) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
-            for (Player* player : queueList)
+            for (Player* p : queueList)
             {
-                if (player)
+                if (p == player)
                 {
                     queueList.remove(player);
                     player->GetSession()->SendNotification("You have been removed from the queue.");
@@ -263,13 +261,13 @@ public:
         }
     }
 
-    //void OnPlayerAddToBattleground(Player* player, Battleground* bg) override
+    void OnAddToBattleground(Player* player, Battleground* bg) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
-            for (Player* player : queueList)
+            for (Player* p : queueList)
             {
-                if (player)
+                if (p == player)
                 {
                     queueList.remove(player);
                     player->GetSession()->SendNotification("You have been removed from the queue.");
@@ -279,15 +277,14 @@ public:
             }
         }
     }
-    */
-
-    void OnPlayerLogout(Player* player)
+    
+    void OnLogout(Player* player) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
-            for (Player* player : queueList)
+            for (Player* p : queueList)
             {
-                if (player)
+                if (p == player)
                 {
                     queueList.remove(player);
                     break;
@@ -300,9 +297,9 @@ public:
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
-            for (Player* player : queueList)
+            for (Player* p : queueList)
             {
-                if (player)
+                if (p == player)
                 {
                     queueList.remove(player);
                     player->GetSession()->SendNotification("You have been removed from the queue.");
