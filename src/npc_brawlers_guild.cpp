@@ -599,6 +599,56 @@ public:
         }
     }
 
+    // Gambler - betFor & betAgainst
+    void CalculateBets(bool outcome)
+    {
+        if (outcome) // Win
+        {
+            for (Player* player : betFor)
+            {
+                if (player)
+                {
+                    if (player->GetFreeInventorySpace())
+                    {
+                        player->GetSession()->SendNotification("You've won your bet. (+5 Brawler's Gold)");
+                        player->AddItem(ITEM_BRAWLERS_GOLD, 10);
+                    }
+                }
+            }
+            for (Player* player : betAgainst)
+            {
+                if (player)
+                {
+                    player->GetSession()->SendNotification("You've lost your bet. (-5 Brawler's Gold)");
+                }
+            }
+        }
+        else // Lose
+        {
+            for (Player* player : betAgainst)
+            {
+                if (player)
+                {
+                    if (player->GetFreeInventorySpace())
+                    {
+                        player->GetSession()->SendNotification("You've won your bet. (+5 Brawler's Gold)");
+                        player->AddItem(ITEM_BRAWLERS_GOLD, 10);
+                    }
+                }
+            }
+            for (Player* player : betFor)
+            {
+                if (player)
+                {
+                    player->GetSession()->SendNotification("You've lost your bet. (-5 Brawler's Gold)");
+                }
+            }
+        }
+
+        betFor.clear();
+        betAgainst.clear();
+    }
+
     // Rank Increase handler
     void Victory(Player* player)
     {
@@ -643,6 +693,7 @@ public:
 
             Firework();
             CrowdReaction();
+            CalculateBets(true);
         }
     }
 
@@ -699,6 +750,7 @@ public:
             summons.DespawnAll();
             CurrentPlayer = nullptr;
             events.ScheduleEvent(EVENT_FIND_PLAYER, 2s);
+            CalculateBets(false);
         }
     }
 
