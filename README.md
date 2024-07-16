@@ -26,9 +26,13 @@ The Brawler's Guild is an organization that arranges one on one battles between 
 
 > [!NOTE]  
 > Features:
+
 > Betting on win/lose for current fight
+
 > Multiple ranks to progress through.
+
 > Multiple Seasons (4 in total, 1 for each raid tier) *NYI*
+
 ### Season tuning information
 
 - Season 1 - Tier 7 &nbsp; (213~)
