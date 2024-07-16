@@ -5,7 +5,12 @@
 Adds [Mist of Pandaria's Brawler's Guild](https://wowpedia.fandom.com/wiki/Brawler%27s_Guild) to [AzerothCore](http://azerothcore.org/).
 
 <p>
-<img src="https://i.imgur.com/aPhT0Oo.jpg" alt="The Brawler's Guild" width=50%/>
+<img src="https://i.imgur.com/gick7EA.jpeg" alt="The Brawler's Guild" width=50%/>
+</p>
+
+<p float="left">
+<img src="https://i.imgur.com/sBQhIcl.jpeg" alt="The Brawler's Guild" width=25%/>
+<img src="https://i.imgur.com/FDR5Mnl.jpeg" alt="The Brawler's Guild" width=25%/>
 </p>
 
 

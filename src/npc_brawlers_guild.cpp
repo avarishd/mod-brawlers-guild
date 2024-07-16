@@ -24,6 +24,7 @@ Betting (brawler's gold only)
 
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
+bool BrawlersGuild_Gambler;
 uint8 BrawlersGuild_CurrentSeason;
 
 class BrawlersGuild_conf : public WorldScript
@@ -35,6 +36,7 @@ public:
     {
         BrawlersGuild_Enabled        = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
+        BrawlersGuild_Gambler        = sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true);
         BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
         /*
@@ -152,6 +154,12 @@ std::list<Creature*> spectatorList;
 
 // Firework tonks list
 std::list<Creature*> fireworkList;
+
+// Gambler - Bet FOR
+std::list<Player*> betFor;
+
+// Gambler - Bet AGAINST
+std::list<Player*> betAgainst;
 
 // Crowd emotes
 const uint32 crowdEmotes[5] = {75, 11, 4, 18, 5};
@@ -1328,29 +1336,50 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
-        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, 0);
-        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
-        std::stringstream balance;
-        balance << "Your current balance is :" << player->GetItemCount(ITEM_BRAWLERS_GOLD);
-        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, balance.str(), GOSSIP_SENDER_MAIN, 0);
-
-
-        if (CurrentPlayer && creature->HasAura(SPELL_MARKER))
+        if (BrawlersGuild_Gambler)
         {
-            std::string playername = CurrentPlayer->ToPlayer()->GetName().c_str();
-            std::stringstream name;
-            name << ">> Bet on " << playername << " or against! <<";
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, 0);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, 0);
             AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
 
-            name.str("");
-            name << "|TInterface\\Icons\\Achievement_pvp_h_12:64|t Bet on " << playername << "!";
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, 0);
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, BET_FOR);
+            if (player->GetItemCount(ITEM_BRAWLERS_GOLD) >= 5)
+            {
+                std::stringstream balance;
+                balance << "Your current balance is :" << player->GetItemCount(ITEM_BRAWLERS_GOLD);
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, balance.str(), GOSSIP_SENDER_MAIN, 0);
+            }
+            else
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "Come back when you earn more brawlers gold. (Min 5)", GOSSIP_SENDER_MAIN, 0);
 
-            name.str("");
-            name << "|TInterface\\Icons\\inv_misc_bone_dwarfskull_01:64|t Bet against " << playername << "!";
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, BET_AGAINST);
+            // Check if we already bet
+            if ((std::find(betFor.begin(), betFor.end(), player) == betFor.end()) && (std::find(betAgainst.begin(), betAgainst.end(), player) == betAgainst.end()))
+            {
+                if (CurrentPlayer && creature->HasAura(SPELL_MARKER) && (player->GetItemCount(ITEM_BRAWLERS_GOLD) >= 5))
+                {
+                    std::string playername = CurrentPlayer->ToPlayer()->GetName().c_str();
+                    std::stringstream name;
+                    name << ">> Bet on " << playername << " or against! <<";
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, 0);
+
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
+
+                    name.str("");
+                    name << "|TInterface\\Icons\\Achievement_pvp_h_12:64|t Bet 5 on " << playername << "!";
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, BET_FOR);
+
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
+
+                    name.str("");
+                    name << "|TInterface\\Icons\\inv_misc_bone_dwarfskull_01:64|t Bet 5 against " << playername << "!";
+                    AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, BET_AGAINST);
+                }
+            }
+            else
+                AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1,"You've already have a bet on this fight.", GOSSIP_SENDER_MAIN, GOODBYE);
+        }
+        else
+        {
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, GOODBYE);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "I'm currently out of business.", GOSSIP_SENDER_MAIN, GOODBYE);
         }
 
         SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
@@ -1365,12 +1394,26 @@ public:
         {
             case BET_FOR:
             {
-                CloseGossipMenuFor(player);
+                if (player->HasItemCount(ITEM_BRAWLERS_GOLD, 5))
+                {
+                    player->DestroyItemCount(ITEM_BRAWLERS_GOLD, 5, true);
+                    player->GetSession()->SendNotification("Your bid on winning has been accepted.");
+
+                    betFor.push_back(player);
+                    CloseGossipMenuFor(player);
+                }
                 break;
             }
             case BET_AGAINST:
             {
-                CloseGossipMenuFor(player);
+                if (player->HasItemCount(ITEM_BRAWLERS_GOLD, 5))
+                {
+                    player->DestroyItemCount(ITEM_BRAWLERS_GOLD, 5, true);
+                    player->GetSession()->SendNotification("Your bid on defeat has been accepted.");
+
+                    betAgainst.push_back(player);
+                    CloseGossipMenuFor(player);
+                }
                 break;
             }
             case GOODBYE:
