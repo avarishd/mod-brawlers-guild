@@ -24,7 +24,6 @@ Betting (brawler's gold only)
 
 bool BrawlersGuild_Enabled;
 bool BrawlersGuild_AnnounceModule;
-bool BrawlersGuild_Gambler;
 uint8 BrawlersGuild_CurrentSeason;
 
 class BrawlersGuild_conf : public WorldScript
@@ -36,7 +35,6 @@ public:
     {
         BrawlersGuild_Enabled        = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
-        BrawlersGuild_Gambler        = sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true);
         BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
         /*
@@ -85,9 +83,7 @@ enum BrawlersGuild
     EVENT_CROWD_DEFEAT          = 23,
 
     // Gambler
-    ACTION_OPEN_BETTING         = 24,
-    ACTION_CLOSE_BETTING        = 25,
-    EVENT_GAMBLER_CLOSE_BETTING = 26,
+    EVENT_GAMBLER_CLOSE_BETTING = 24,
 
 
     // Helix
@@ -97,9 +93,14 @@ enum BrawlersGuild
     GOODBYE         = 13,
     DEL_FROM_QUEUE  = 14,
 
+    // Gambler
+    BET_FOR         = 30,
+    BET_AGAINST     = 31,
+
     SPELL_QUEUE_COOLDOWN = 200001,
     SPELL_CHEAP_SHOT     = 30986,
-    SOUND_STEALTH        = 3325
+    SOUND_STEALTH        = 3325,
+    SPELL_MARKER         = 42171 // Arrow marker
 };
 
 enum ArenaObjects
@@ -528,7 +529,7 @@ public:
     {
         npc_player_detectorAI(Creature* creature) : ScriptedAI(creature), summons(me)
         {
-            events.ScheduleEvent(EVENT_LOAD_ARENA_OBJECTS, 5s);
+            events.ScheduleEvent(EVENT_LOAD_ARENA_OBJECTS, 2s);
         }
 
 
@@ -681,7 +682,7 @@ public:
 
             if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
             {
-                gam->AI()->DoAction(ACTION_CLOSE_BETTING);
+                gam->RemoveAura(SPELL_MARKER);
             }
 
             CrowdReaction();
@@ -825,7 +826,7 @@ public:
 
                                 if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
                                 {
-                                    gam->AI()->DoAction(ACTION_OPEN_BETTING);
+                                    me->AddAura(SPELL_MARKER, gam);
                                 }
                                 events.ScheduleEvent(EVENT_GAMBLER_CLOSE_BETTING, 10s);
                             }
@@ -856,7 +857,7 @@ public:
                         {
                             announcer = c->GetGUID();
                         }
-                        if (Creature* c = me->FindNearestCreature(NPC_ARENA_GAMBLER, 60))
+                        if (Creature* c = me->FindNearestCreature(NPC_ARENA_GAMBLER, 40))
                         {
                             gambler = c->GetGUID();
                         }
@@ -866,7 +867,7 @@ public:
                     {
                         if (Creature* gam = ObjectAccessor::GetCreature(*me, gambler))
                         {
-                            gam->AI()->DoAction(ACTION_CLOSE_BETTING);
+                            gam->RemoveAura(SPELL_MARKER);
                         }
                         break;
                     }
@@ -1319,28 +1320,38 @@ public:
     }
 };
 
+// NOTE TO SELF: CreatureScripts cannot have BOTH GOSSIP & UPDATEAI/DOACTION <> <> <>
 class npc_brawlers_gambler : public CreatureScript
 {
 public:
-    npc_brawlers_gambler() : CreatureScript("npc_brawlers_gambler") 
-    {
-        bool BettingActive = false;
-    }
+    npc_brawlers_gambler() : CreatureScript("npc_brawlers_gambler") {}
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
-        if (BrawlersGuild_Gambler)
+        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
+        std::stringstream balance;
+        balance << "Your current balance is :" << player->GetItemCount(ITEM_BRAWLERS_GOLD);
+        AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, balance.str(), GOSSIP_SENDER_MAIN, 0);
+
+
+        if (CurrentPlayer && creature->HasAura(SPELL_MARKER))
         {
-            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "|TInterface\\Icons\\inv_misc_elvencoins:16|t Are you willing to bet your coins? |TInterface\\Icons\\inv_misc_elvencoins:16|t", GOSSIP_SENDER_MAIN, 0);
-            if (BettingActive && CurrentPlayer)
-            {
-                std::stringstream name;
-                name << "\n == Bet on " << CurrentPlayer->ToPlayer()->GetName().c_str() << " or against! == \n";
-                AddGossipItemFor(player, GOSSIP_ICON_TABARD, name.str(), GOSSIP_SENDER_MAIN, 0);
-            }
+            std::string playername = CurrentPlayer->ToPlayer()->GetName().c_str();
+            std::stringstream name;
+            name << ">> Bet on " << playername << " or against! <<";
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, 0);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, 0);
+
+            name.str("");
+            name << "|TInterface\\Icons\\Achievement_pvp_h_12:64|t Bet on " << playername << "!";
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, 0);
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, "-------------------------------------", GOSSIP_SENDER_MAIN, BET_FOR);
+
+            name.str("");
+            name << "|TInterface\\Icons\\inv_misc_bone_dwarfskull_01:64|t Bet against " << playername << "!";
+            AddGossipItemFor(player, GOSSIP_ICON_INTERACT_1, name.str(), GOSSIP_SENDER_MAIN, BET_AGAINST);
         }
-        else
-            AddGossipItemFor(player, GOSSIP_ICON_TABARD, "I'm currently out of business.", GOSSIP_SENDER_MAIN, GOODBYE);
 
         SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
         return true;
@@ -1352,6 +1363,16 @@ public:
 
         switch (action)
         {
+            case BET_FOR:
+            {
+                CloseGossipMenuFor(player);
+                break;
+            }
+            case BET_AGAINST:
+            {
+                CloseGossipMenuFor(player);
+                break;
+            }
             case GOODBYE:
             {
                 CloseGossipMenuFor(player);
@@ -1361,21 +1382,6 @@ public:
 
         return true;
     }
-
-    void DoAction(int32 action)
-    {
-        if (action == ACTION_OPEN_BETTING)
-        {
-            BettingActive = true;
-        }
-        if (action == ACTION_CLOSE_BETTING)
-        {
-            BettingActive = false;
-        }
-    }
-
-    private:
-        bool BettingActive;
 };
 
 void AddBrawlersGuildScripts()
