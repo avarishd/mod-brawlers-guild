@@ -18,7 +18,7 @@ Custom spells (both scripting and new spells in general)
 Custom area fights (e.g void zones closing in the arena)
 Multifights (2 npcs that share hp/need to kill both?)
 Seasons
-Maybe VIP area at max rank? GO ID 143230
+Maybe VIP area at max rank?
 */
 
 bool BrawlersGuild_Enabled;
@@ -121,6 +121,11 @@ enum Announcer
     ACTION_ANNOUNCE_DEFEAT_DEATH = 3
 };
 
+enum VIPArea
+{
+    // cords : -1134.90, -4760.32, 6.02, 2.455
+    // GO ID 143230
+};
 
 const Position goArenaPillar[6] =
 {
