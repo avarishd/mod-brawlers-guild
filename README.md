@@ -28,7 +28,7 @@ The Brawler's Guild is an organization that arranges one on one battles between 
 > Features:\
 > Betting on win/lose for current fight\
 > Multiple ranks to progress through.\
-> VIP Area (South Seas) (Teleporter unlockable after reaching the highest rank (8))
+> VIP Area (South Seas) (Teleporter unlockable after reaching the highest rank (8))\
 > Multiple Seasons (4 in total, 1 for each raid tier) *NYI*
 ### Season tuning information
 
