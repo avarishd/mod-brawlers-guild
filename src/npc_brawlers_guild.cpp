@@ -3,6 +3,8 @@
 #include "Configuration/Config.h"
 #include "ObjectMgr.h"
 #include "CreatureScript.h"
+#include "GameObjectAI.h"
+#include "GameObjectScript.h"
 #include "PassiveAI.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
@@ -960,33 +962,40 @@ public:
     {
         npc_other_players_detectorAI(Creature* creature) : ScriptedAI(creature) {}
 
-    void MoveInLineOfSight(Unit* who) override
-    {
-        if (who && (who->IsPet() || who->IsPlayer()) && !who->ToPlayer()->IsGameMaster())
+        void MoveInLineOfSight(Unit* who) override
         {
-            if (who->IsWithinDist(me, 45))
+            if (who)
             {
-                if (me->GetMap()->isInLineOfSight(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), who->GetPositionX(), who->GetPositionY(), who->GetPositionZ(), 2, LINEOFSIGHT_CHECK_VMAP , VMAP::ModelIgnoreFlags::Nothing))
+                if (me->GetExactDist2d(who) <= 29.0f)
                 {
-                    if (who->ToPlayer() && who->ToPlayer() != CurrentPlayer)
+                    if (who->IsPlayer())
                     {
-                        me->PlayDirectSound(SOUND_STEALTH, who->ToPlayer());
-                        me->AddAura(SPELL_CHEAP_SHOT, who);
-                        who->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
+                        if (!who->ToPlayer()->IsGameMaster())
+                        {
+                            if (me->GetMap()->isInLineOfSight(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), who->GetPositionX(), who->GetPositionY(), who->GetPositionZ(), 2, LINEOFSIGHT_CHECK_VMAP , VMAP::ModelIgnoreFlags::Nothing))
+                            {
+                                if (who->ToPlayer() != CurrentPlayer)
+                                {
+                                    me->PlayDirectSound(SOUND_STEALTH, who->ToPlayer());
+                                    me->AddAura(SPELL_CHEAP_SHOT, who);
+                                    who->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
+                                }
+                            }
+                        }
                     }
                     if (who->IsPet())
                     {
-                        if (who->ToCreature()->GetOwner() != CurrentPlayer)
+                        if (me->GetMap()->isInLineOfSight(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), who->GetPositionX(), who->GetPositionY(), who->GetPositionZ(), 2, LINEOFSIGHT_CHECK_VMAP , VMAP::ModelIgnoreFlags::Nothing))
                         {
-                            who->ToCreature()->DespawnOrUnsummon();
+                            if (who->ToCreature()->GetOwner() != CurrentPlayer)
+                            {
+                                who->ToCreature()->DespawnOrUnsummon();
+                            }
                         }
                     }
                 }
             }
         }
-    }
-
-    void UpdateAI(uint32 /*diff*/) override {}
     };
 
     CreatureAI* GetAI(Creature* creature) const override
