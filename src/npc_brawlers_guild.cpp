@@ -32,9 +32,9 @@ public:
 
     void OnBeforeConfigLoad(bool /*reload*/) override
     {
-        BrawlersGuild_Enabled        = sConfigMgr->GetBoolDefault("BrawlersGuild.Enabled", true);
-        BrawlersGuild_AnnounceModule = sConfigMgr->GetBoolDefault("BrawlersGuild.Announce", true);
-        BrawlersGuild_Gambler        = sConfigMgr->GetBoolDefault("BrawlersGuild.Gambler", true);
+        BrawlersGuild_Enabled        = sConfigMgr->GetOption("BrawlersGuild.Enabled", true);
+        BrawlersGuild_AnnounceModule = sConfigMgr->GetOption("BrawlersGuild.Announce", true);
+        BrawlersGuild_Gambler        = sConfigMgr->GetOption("BrawlersGuild.Gambler", true);
         BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
 
         /*
@@ -100,7 +100,8 @@ enum BrawlersGuild
     SPELL_QUEUE_COOLDOWN = 200001,
     SPELL_CHEAP_SHOT     = 30986,
     SOUND_STEALTH        = 3325,
-    SPELL_MARKER         = 42171 // Arrow marker
+    SPELL_MARKER         = 42171, // Red Arrow marker
+    SPELL_GREEN_MARKER   = 75779  // Green Arrow Marker
 };
 
 enum ArenaObjects
@@ -487,9 +488,9 @@ public:
 
                     top++;
                 } while(result->NextRow());
-
-            SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
             }
+            SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
+            break;
         }
 
         if (action == GOODBYE)
