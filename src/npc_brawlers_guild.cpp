@@ -3,6 +3,7 @@
 #include "Configuration/Config.h"
 #include "ObjectMgr.h"
 #include "CreatureScript.h"
+#include "Chat.h"
 #include "GameObjectAI.h"
 #include "GameObjectScript.h"
 #include "PassiveAI.h"
@@ -35,7 +36,7 @@ public:
         BrawlersGuild_Enabled        = sConfigMgr->GetOption("BrawlersGuild.Enabled", true);
         BrawlersGuild_AnnounceModule = sConfigMgr->GetOption("BrawlersGuild.Announce", true);
         BrawlersGuild_Gambler        = sConfigMgr->GetOption("BrawlersGuild.Gambler", true);
-        BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetIntDefault("BrawlersGuild.CurrentSeason", 1);
+        BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetOption("BrawlersGuild.CurrentSeason", 1);
 
         /*
         if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
@@ -252,7 +253,7 @@ public:
                 if (p == player)
                 {
                     queueList.remove(player);
-                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
                     player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
                     break;
                 }
@@ -269,7 +270,7 @@ public:
                 if (p == player)
                 {
                     queueList.remove(player);
-                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
                     player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
                     break;
                 }
@@ -301,7 +302,7 @@ public:
                 if (p == player)
                 {
                     queueList.remove(player);
-                    player->GetSession()->SendNotification("You have been removed from the queue.");
+                    ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
                     player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
                     break;
                 }
@@ -411,7 +412,7 @@ public:
             if (player->ToPlayer())
             {
                 queueList.push_back(player);
-                player->GetSession()->SendNotification("You have been added to the queue.");
+                ChatHandler(player->GetSession()).SendNotification("You have been added to the queue.");
 
                 if (Creature* t = creature->FindNearestCreature(NPC_TARGET_SELECTOR, 40))
                 {
@@ -427,7 +428,7 @@ public:
             if (player->ToPlayer())
             {
                 queueList.remove(player);
-                player->GetSession()->SendNotification("You have been removed from the queue.");
+                ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
                 player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
             }
 
@@ -447,7 +448,7 @@ public:
                 Field *fields = result->Fetch();
                 std::string rank = fields[0].Get<std::string>();
                 std::string progress = fields[1].Get<std::string>();
-                uint32 reqprogress = sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10);
+                uint32 reqprogress = sConfigMgr->GetOption("BrawlersGuild.RankRequired", 10);
 
                 std::stringstream buf;
                 buf << "Current rank: " << rank;
@@ -490,7 +491,6 @@ public:
                 } while(result->NextRow());
             }
             SendGossipMenuFor(player, GOSSIP_HELLO, creature->GetGUID());
-            break;
         }
 
         if (action == GOODBYE)
@@ -505,7 +505,7 @@ public:
     {
         if (Quest->GetQuestId() == QUEST_BRAWLERS_GUILD)
         {
-            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetIntDefault("BrawlersGuild.CoinsStartingQuestReward", 10));
+            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption("BrawlersGuild.CoinsStartingQuestReward", 10));
 
             // Register player upon quest completion
             QueryResult result = CharacterDatabase.Query("SELECT `CharacterGUID` FROM `brawlersguild` WHERE `CharacterGUID` = '{}'", player->GetGUID().GetCounter());
@@ -606,7 +606,7 @@ public:
                 {
                     if (player->GetFreeInventorySpace())
                     {
-                        player->GetSession()->SendNotification("You've won your bet. (+5 Brawler's Gold)");
+                        ChatHandler(player->GetSession()).SendNotification("You've won your bet. (+5 Brawler's Gold)");
                         player->AddItem(ITEM_BRAWLERS_GOLD, 10);
                     }
                 }
@@ -615,7 +615,7 @@ public:
             {
                 if (player)
                 {
-                    player->GetSession()->SendNotification("You've lost your bet. (-5 Brawler's Gold)");
+                    ChatHandler(player->GetSession()).SendNotification("You've lost your bet. (-5 Brawler's Gold)");
                 }
             }
         }
@@ -627,7 +627,7 @@ public:
                 {
                     if (player->GetFreeInventorySpace())
                     {
-                        player->GetSession()->SendNotification("You've won your bet. (+5 Brawler's Gold)");
+                        ChatHandler(player->GetSession()).SendNotification("You've won your bet. (+5 Brawler's Gold)");
                         player->AddItem(ITEM_BRAWLERS_GOLD, 10);
                     }
                 }
@@ -636,7 +636,7 @@ public:
             {
                 if (player)
                 {
-                    player->GetSession()->SendNotification("You've lost your bet. (-5 Brawler's Gold)");
+                    ChatHandler(player->GetSession()).SendNotification("You've lost your bet. (-5 Brawler's Gold)");
                 }
             }
         }
@@ -651,7 +651,7 @@ public:
         if (player)
         {
             me->Whisper("Victory!", LANG_UNIVERSAL, player, true);
-            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetIntDefault("BrawlersGuild.CoinsVictoryReward", 2));
+            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption("BrawlersGuild.CoinsVictoryReward", 2));
             player->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
 
             QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
@@ -662,7 +662,7 @@ public:
                 uint32 progress = fields[1].Get<uint32>();
 
                 // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                if (progress + sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetIntDefault("BrawlersGuild.RankRequired", 10)))
+                if (progress + sConfigMgr->GetOption("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetOption("BrawlersGuild.RankRequired", 10)))
                 {
                     rank += 1;
                     std::stringstream rankup;
@@ -674,7 +674,7 @@ public:
                 // Update Progress
                 else
                 {
-                    progress += sConfigMgr->GetIntDefault("BrawlersGuild.RankWin", 1);
+                    progress += sConfigMgr->GetOption("BrawlersGuild.RankWin", 1);
                     CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, player->GetGUID().GetCounter());
                 }
             }
@@ -702,7 +702,7 @@ public:
             std::string msg = type ? "You ran out of time!" : "You have failed.";
             me->Whisper(msg, LANG_UNIVERSAL, CurrentPlayer, true);
 
-            if (sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) != 0)
+            if (sConfigMgr->GetOption("BrawlersGuild.RankLose", 2) != 0)
             {
                 QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", CurrentPlayer->GetGUID().GetCounter());
                 if (result)
@@ -712,7 +712,7 @@ public:
                     int32 progress = fields[1].Get<uint32>(); // Required to go negative, in order to downrank.
 
                     // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                    if (progress - sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2) < 0)
+                    if (progress - sConfigMgr->GetOption("BrawlersGuild.RankLose", 2) < 0)
                     {
                         rank -= 1;
                         std::stringstream rankup;
@@ -724,7 +724,7 @@ public:
                     // Update Progress
                     else
                     {
-                        progress -= sConfigMgr->GetIntDefault("BrawlersGuild.RankLose", 2);
+                        progress -= sConfigMgr->GetOption("BrawlersGuild.RankLose", 2);
                         CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
                     }
                 }
@@ -876,7 +876,7 @@ public:
                                 uint32 rank = fields[0].Get<uint32>();
 
                                 // Max rank is 8, anything above that start spawning rares, with increased chance per higher rank (NYI)
-                                me->SummonCreature(Rank[BrawlersGuild_CurrentSeason - 1][rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetIntDefault("BrawlersGuild.FightDuration", 120));
+                                me->SummonCreature(Rank[BrawlersGuild_CurrentSeason - 1][rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetOption("BrawlersGuild.FightDuration", 120));
 
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
@@ -1276,11 +1276,11 @@ public:
                         // Only accessible at rank 0, don't require any checks.
                         CharacterDatabase.DirectExecute("REPLACE INTO `brawlersguild` (`CharacterGUID`, `Progress`, `Rank`) VALUES ('{}', '2', '1');", player->GetGUID().GetCounter());
                         player->ModifyMoney(-1000000);
-                        player->GetSession()->SendNotification("You have been promoted to Rank 1.");
+                        ChatHandler(player->GetSession()).SendNotification("You have been promoted to Rank 1.");
                     }
                     else
                     {
-                        player->GetSession()->SendNotification("Not enough gold.");
+                        ChatHandler(player->GetSession()).SendNotification("Not enough gold.");
                     }
                     CloseGossipMenuFor(player);
                     break;
@@ -1382,7 +1382,7 @@ public:
         if  (player->HasItemCount(ITEM_BRAWLERS_GOLD, gold) && player->GetFreeInventorySpace())
             return true;
         else
-            player->GetSession()->SendNotification("Not enough bag space or gold.");
+            ChatHandler(player->GetSession()).SendNotification("Not enough bag space or gold.");
             return false;
     }
 };
@@ -1455,7 +1455,7 @@ public:
                 if (player->HasItemCount(ITEM_BRAWLERS_GOLD, 5))
                 {
                     player->DestroyItemCount(ITEM_BRAWLERS_GOLD, 5, true);
-                    player->GetSession()->SendNotification("Your bid on winning has been accepted.");
+                    ChatHandler(player->GetSession()).SendNotification("Your bid on winning has been accepted.");
 
                     betFor.push_back(player);
                     CloseGossipMenuFor(player);
@@ -1467,7 +1467,7 @@ public:
                 if (player->HasItemCount(ITEM_BRAWLERS_GOLD, 5))
                 {
                     player->DestroyItemCount(ITEM_BRAWLERS_GOLD, 5, true);
-                    player->GetSession()->SendNotification("Your bid on defeat has been accepted.");
+                    ChatHandler(player->GetSession()).SendNotification("Your bid on defeat has been accepted.");
 
                     betAgainst.push_back(player);
                     CloseGossipMenuFor(player);
