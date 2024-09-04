@@ -33,10 +33,10 @@ public:
 
     void OnBeforeConfigLoad(bool /*reload*/) override
     {
-        BrawlersGuild_Enabled        = sConfigMgr->GetOption("BrawlersGuild.Enabled", true);
-        BrawlersGuild_AnnounceModule = sConfigMgr->GetOption("BrawlersGuild.Announce", true);
-        BrawlersGuild_Gambler        = sConfigMgr->GetOption("BrawlersGuild.Gambler", true);
-        BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetOption("BrawlersGuild.CurrentSeason", 1);
+        BrawlersGuild_Enabled        = sConfigMgr->GetOption<bool>("BrawlersGuild.Enabled", true);
+        BrawlersGuild_AnnounceModule = sConfigMgr->GetOption<bool>("BrawlersGuild.Announce", true);
+        BrawlersGuild_Gambler        = sConfigMgr->GetOption<bool>("BrawlersGuild.Gambler", true);
+        BrawlersGuild_CurrentSeason  = 1; //sConfigMgr->GetOption<uint8>("BrawlersGuild.CurrentSeason", 1);
 
         /*
         if (BrawlersGuild_CurrentSeason < 1 || BrawlersGuild_CurrentSeason > 4)
@@ -448,7 +448,7 @@ public:
                 Field *fields = result->Fetch();
                 std::string rank = fields[0].Get<std::string>();
                 std::string progress = fields[1].Get<std::string>();
-                uint32 reqprogress = sConfigMgr->GetOption("BrawlersGuild.RankRequired", 10);
+                uint32 reqprogress = sConfigMgr->GetOption<uint32>("BrawlersGuild.RankRequired", 10);
 
                 std::stringstream buf;
                 buf << "Current rank: " << rank;
@@ -505,7 +505,7 @@ public:
     {
         if (Quest->GetQuestId() == QUEST_BRAWLERS_GUILD)
         {
-            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption("BrawlersGuild.CoinsStartingQuestReward", 10));
+            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption<uint32>("BrawlersGuild.CoinsStartingQuestReward", 10));
 
             // Register player upon quest completion
             QueryResult result = CharacterDatabase.Query("SELECT `CharacterGUID` FROM `brawlersguild` WHERE `CharacterGUID` = '{}'", player->GetGUID().GetCounter());
@@ -651,7 +651,7 @@ public:
         if (player)
         {
             me->Whisper("Victory!", LANG_UNIVERSAL, player, true);
-            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption("BrawlersGuild.CoinsVictoryReward", 2));
+            player->AddItem(ITEM_BRAWLERS_GOLD, sConfigMgr->GetOption<uint32>("BrawlersGuild.CoinsVictoryReward", 2));
             player->NearTeleportTo(playerResetPos.GetPositionX(), playerResetPos.GetPositionY(), playerResetPos.GetPositionZ(), playerResetPos.GetOrientation());
 
             QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", player->GetGUID().GetCounter());
@@ -662,7 +662,7 @@ public:
                 uint32 progress = fields[1].Get<uint32>();
 
                 // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                if (progress + sConfigMgr->GetOption("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetOption("BrawlersGuild.RankRequired", 10)))
+                if (progress + sConfigMgr->GetOption<uint32>("BrawlersGuild.RankWin", 1) >= (sConfigMgr->GetOption<uint32>("BrawlersGuild.RankRequired", 10)))
                 {
                     rank += 1;
                     std::stringstream rankup;
@@ -674,7 +674,7 @@ public:
                 // Update Progress
                 else
                 {
-                    progress += sConfigMgr->GetOption("BrawlersGuild.RankWin", 1);
+                    progress += sConfigMgr->GetOption<uint32>("BrawlersGuild.RankWin", 1);
                     CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, player->GetGUID().GetCounter());
                 }
             }
@@ -702,7 +702,7 @@ public:
             std::string msg = type ? "You ran out of time!" : "You have failed.";
             me->Whisper(msg, LANG_UNIVERSAL, CurrentPlayer, true);
 
-            if (sConfigMgr->GetOption("BrawlersGuild.RankLose", 2) != 0)
+            if (sConfigMgr->GetOption<uint32>("BrawlersGuild.RankLose", 2) != 0)
             {
                 QueryResult result = CharacterDatabase.Query("SELECT `Rank`, `Progress` FROM `brawlersguild` WHERE `CharacterGUID` = '{}';", CurrentPlayer->GetGUID().GetCounter());
                 if (result)
@@ -712,7 +712,7 @@ public:
                     int32 progress = fields[1].Get<uint32>(); // Required to go negative, in order to downrank.
 
                     // Update Rank (and Progress) if we reach the threshold, progress always goes to 0.
-                    if (progress - sConfigMgr->GetOption("BrawlersGuild.RankLose", 2) < 0)
+                    if (progress - sConfigMgr->GetOption<uint32>("BrawlersGuild.RankLose", 2) < 0)
                     {
                         rank -= 1;
                         std::stringstream rankup;
@@ -724,7 +724,7 @@ public:
                     // Update Progress
                     else
                     {
-                        progress -= sConfigMgr->GetOption("BrawlersGuild.RankLose", 2);
+                        progress -= sConfigMgr->GetOption<uint32>("BrawlersGuild.RankLose", 2);
                         CharacterDatabase.DirectExecute("UPDATE `brawlersguild` SET `Progress` = '{}' WHERE `CharacterGUID` = '{}';", progress, CurrentPlayer->GetGUID().GetCounter());
                     }
                 }
@@ -876,7 +876,7 @@ public:
                                 uint32 rank = fields[0].Get<uint32>();
 
                                 // Max rank is 8, anything above that start spawning rares, with increased chance per higher rank (NYI)
-                                me->SummonCreature(Rank[BrawlersGuild_CurrentSeason - 1][rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetOption("BrawlersGuild.FightDuration", 120));
+                                me->SummonCreature(Rank[BrawlersGuild_CurrentSeason - 1][rank - 1][urand(0,3)], spawnPos.GetPositionX(), spawnPos.GetPositionY(), spawnPos.GetPositionZ(), 1.1, TEMPSUMMON_TIMED_DESPAWN, 1000 * sConfigMgr->GetOption<uint32>("BrawlersGuild.FightDuration", 120));
 
                                 AddRatGossip(false);
                                 me->Whisper("Begin!", LANG_UNIVERSAL, CurrentPlayer, true);
