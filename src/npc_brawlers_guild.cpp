@@ -15,6 +15,7 @@
 #include "Chat.h"
 
 /* TODO
+Teleport player's pet too
 Correct tuning (requires testing with proper ilvl) (After all creatures for s1 are done (+ rares))
 More scripted fights (outside of SAI)
 Custom area fights (e.g void zones closing in the arena)
@@ -1005,7 +1006,7 @@ public:
     }
 };
 
-const std::string annVictory[10] =
+const std::string annVictory[30] =
 {
     {"Ladies and gentlemen, let's give it up for our incredible champion!"},
     {"And there we have it, folks! Another victorious win for the fighter of the century!"},
@@ -1016,7 +1017,27 @@ const std::string annVictory[10] =
     {"The roar of the crowd echoes the triumph of our champion! A well-deserved triumph!"},
     {"Unbelievable! Our fighter emerged as the ultimate victor, leaving a trail of awe and admiration!"},
     {"A resounding victory! Our fighter has electrified this arena with their indomitable spirit!"},
-    {"It's official, folks! Our fighter has risen to the top, leaving their opponents in awe and us in pure amazement!"}
+    {"It's official, folks! Our fighter has risen to the top, leaving their opponents in awe and us in pure amazement!"},
+    {"And the champion rises, a true warrior in the arena!"},
+    {"With heart and grit, he has secured his victory tonight!"},
+    {"A phenomenal performance! He truly showcased his skill and determination!"},
+    {"What an incredible display of strength and finesse!"},
+    {"He fought like a lion, and the crown is now his!"},
+    {"Against all odds, he has emerged victorious!"},
+    {"A masterclass in strategy and power – well done, champion!"},
+    {"He has claimed his place at the top with unwavering resolve!"},
+    {"Tonight, he proved that hard work pays off!"},
+    {"With every punch, he carved his path to victory!"},
+    {"A relentless spirit has brought him triumph this evening!"},
+    {"What an electrifying performance! The crowd is on their feet!"},
+    {"A true testament to his dedication and skill!"},
+    {"He’s not just a fighter; he’s a phenomenon!"},
+    {"With courage, he has written a new chapter in his legacy!"},
+    {"He’s claimed his destiny with style and valor!"},
+    {"A brilliant showcase of tenacity and talent!"},
+    {"Against the odds, he has written his own victory story!"},
+    {"He is the embodiment of strength and determination!"},
+    {"Tonight, he has shown the world what it means to be a champion!"}
 };
 
 const std::string annTime[10] =
@@ -1030,10 +1051,30 @@ const std::string annTime[10] =
     {"Time ran out, just like my enthusiasm. Let's keep the pity party going, shall we?"},
     {"No more time left! Reality check: this could've been better spent doing something else."},
     {"Time's up, folks! File this game under 'forgettable' and move on with your lives."},
-    {"And just like that, the clock steals away the opportunity for anything exciting to happen."}
+    {"And just like that, the clock steals away the opportunity for anything exciting to happen."},
+    {"Looks like the clock struck zero on your chance to shine!"},
+    {"Time’s up, champ! Back to the drawing board!"},
+    {"You’re late to the party—hope you won’t mind the empty seats!"},
+    {"The countdown is over, and so is your chance!"},
+    {"Tick-tock! Looks like you let the opportunity slip away!"},
+    {"Well, well—time waits for no fighter!"},
+    {"And here you are, fashionably late to your own demise!"},
+    {"Sorry, the hourglass has run out; no extra rounds for you!"},
+    {"Time’s a cruel foe, and it just knocked you out!"},
+    {"The final bell’s rung, and you didn’t even step in the ring!"},
+    {"Your time just expired—don’t let the door hit you on the way out!"},
+    {"And there goes your shot—time to clock out!"},
+    {"Too slow, my friend—the sands of time have spoken!"},
+    {"Looks like you overslept your chance at glory!"},
+    {"The clock has struck, and your moment has vanished!"},
+    {"You’re all dressed up with nowhere to go—time’s up!"},
+    {"Sad news, buddy—the fight schedule just closed!"},
+    {"Time can be a ruthless opponent—you just got KO'd by it!"},
+    {"The arena’s ready, but sadly, your clock just ran out!"},
+    {"Looks like the universe conspired against your big moment!"}
 };
 
-const std::string annDeath[10] =
+const std::string annDeath[30] =
 {
     {"And that's one less hero in the arena! They'll be missed. By someone. Probably."},
     {"Well, well, well, looks like someone just got schooled! Maybe they should've studied harder."},
@@ -1044,7 +1085,37 @@ const std::string annDeath[10] =
     {"RIP, player. We hardly knew ya. And honestly, we probably won't remember ya either."},
     {"That was a swift defeat! They couldn't even blink before they were knocked out."},
     {"And... crash! This player's dreams just shattered faster than a screen protector."},
-    {"Another one bites the dust! Can someone get these players a map? They seem lost."}
+    {"Another one bites the dust! Can someone get these players a map? They seem lost."},
+    {"Looks like that last round really took his breath away—permanently!"},
+    {"Guess he won't be needing a rematch now!"},
+    {"Talk about a knockout; he took it to the extreme!"},
+    {"And that's one way to make a dramatic exit!"},
+    {"He went down like a tree—never to rise again!"},
+    {"Well, folks, he certainly left it all in the ring—forever!"},
+    {"I guess you could say he really 'took one for the team'… the afterlife team!"},
+    {"He wasn't just knocked out; he was sent packing six feet under!"},
+    {"Looks like he found the ultimate way to avoid a post-fight interview!"},
+    {"And that’s a wrap! Someone call the coroner; he just took the ultimate dive!"},
+    {"Well, he definitely took the 'knockout' part too literally!"},
+    {"Looks like he found a way to take his fight to the next level—permanently!"},
+    {"Talk about going to sleep on the job—he really committed!"},
+    {"He came, he fought, he... checked out!"},
+    {"Guess he didn’t know when to throw in the towel—or stay out of the ring!"},
+    {"That’s one way to ensure you never have to face an opponent again!"},
+    {"He took 'going down for the count' to a whole new extreme!"},
+    {"Looks like he crossed the ultimate finish line a little too soon!"},
+    {"He always wanted to make a grand exit, but this was a bit much!"},
+    {"Guess he found the ultimate way to avoid the rematch!"},
+    {"He really took 'tap out' to heart—literally!"},
+    {"He didn't just lose; he went on his final vacation!"},
+    {"His career ended with a bang—or was that just the final bell?"},
+    {"He sure knew how to make an exit; just not the right one!"},
+    {"Well, that’s one way to dodge the next fight!"},
+    {"He truly left it all in the ring—too much, perhaps!"},
+    {"Looks like he won't be needing a post-fight interview!"},
+    {"He went for glory and ended up with a long nap instead!"},
+    {"Talk about taking a 'hard fall' to a whole new level!"},
+    {"Well, he certainly put the 'final' in 'final round!'"}
 };
 
 class npc_arena_announcer : public CreatureScript
