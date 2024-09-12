@@ -15,13 +15,12 @@ Adds [Mist of Pandaria's Brawler's Guild](https://wowpedia.fandom.com/wiki/Brawl
 
 
 > [!IMPORTANT]
-> Probably does NOT work with playerbots.
-
-> [!IMPORTANT]
 > Requires at least AzerothCore commit [d6d49a9](https://github.com/azerothcore/azerothcore-wotlk/commit/e4df159f5c370e1a1890a6a999b33b30d72eb55e).
+> Does not support PlayerBots or any other custom AzerothCore forks.
 ## How to use ingame (Horde only)
 
 - .tele ringofvalor
+- Be level 80
 
 ## Description
 
