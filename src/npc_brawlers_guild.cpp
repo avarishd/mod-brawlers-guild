@@ -236,7 +236,7 @@ public:
     BrawlersGuild_Announce() : PlayerScript("BrawlersGuild_Announce") {}
 
     // Announce Module
-    void OnLogin(Player* player) override
+    void OnPlayerLogin(Player* player) override
     {
         if (BrawlersGuild_AnnounceModule)
         {
@@ -244,8 +244,23 @@ public:
         }
     }
 
+    void OnPlayerLogout(Player* player) override
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* p : queueList)
+            {
+                if (p == player)
+                {
+                    queueList.remove(player);
+                    break;
+                }
+            }
+        }
+    }
+
     // Remove players that join group activities or logout
-    void OnQueueRandomDungeon(Player* player, uint32 & rDungeonId) override
+    void OnPlayerQueueRandomDungeon(Player* player, uint32 & rDungeonId) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
@@ -262,7 +277,7 @@ public:
         }
     }
 
-    void OnAddToBattleground(Player* player, Battleground* bg) override
+    void OnPlayerAddToBattleground(Player* player, Battleground* bg) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
@@ -273,21 +288,6 @@ public:
                     queueList.remove(player);
                     ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
                     player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
-                    break;
-                }
-            }
-        }
-    }
-    
-    void OnLogout(Player* player) override
-    {
-        if (BrawlersGuild_Enabled && CurrentPlayer)
-        {
-            for (Player* p : queueList)
-            {
-                if (p == player)
-                {
-                    queueList.remove(player);
                     break;
                 }
             }
@@ -295,6 +295,23 @@ public:
     }
 
     void OnPlayerJoinBG(Player* player) override
+    {
+        if (BrawlersGuild_Enabled && CurrentPlayer)
+        {
+            for (Player* p : queueList)
+            {
+                if (p == player)
+                {
+                    queueList.remove(player);
+                    ChatHandler(player->GetSession()).SendNotification("You have been removed from the queue.");
+                    player->CastSpell(player, SPELL_QUEUE_COOLDOWN, true); // 60 second cooldown to prevent queue abuse.
+                    break;
+                }
+            }
+        }
+    }
+
+    void OnPlayerJoinArena(Player* player) override
     {
         if (BrawlersGuild_Enabled && CurrentPlayer)
         {
