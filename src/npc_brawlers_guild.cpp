@@ -1057,7 +1057,7 @@ const std::string annVictory[30] =
     {"Tonight, he has shown the world what it means to be a champion!"}
 };
 
-const std::string annTime[10] =
+const std::string annTime[30] =
 {
     {"Time's up! Don't worry, I'm sure the excitement will continue... somewhere else."},
     {"Well, folks, that's all she wrote. Time ran out, and so did our hopes for a thrilling finish."},
@@ -1091,7 +1091,7 @@ const std::string annTime[10] =
     {"Looks like the universe conspired against your big moment!"}
 };
 
-const std::string annDeath[30] =
+const std::string annDeath[40] =
 {
     {"And that's one less hero in the arena! They'll be missed. By someone. Probably."},
     {"Well, well, well, looks like someone just got schooled! Maybe they should've studied harder."},
